@@ -1,6 +1,7 @@
-from typing import List
+from typing import *
 
 from fastapi import APIRouter
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -45,3 +46,8 @@ async def read_animes(session: SessionDep, page: int = 1) -> List[Anime]:
         .offset((page - 1) * page_size)
     )
     return result.all()
+
+
+@router.get("/anime/anidb/{anime_id}", response_class=HTMLResponse)
+async def read_anime(anime_id: int) -> Any:
+    return await anidb.get_page(anime_id)
