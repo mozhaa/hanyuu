@@ -51,5 +51,5 @@ async def get_session() -> AsyncIterator[AsyncSession]:
     if not db.connected:
         db.connect()
         await db.create_tables()
-    async with db.async_session() as session:
+    async with db.async_session(expire_on_commit=False) as session:
         yield session
