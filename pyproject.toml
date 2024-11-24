@@ -16,6 +16,8 @@ fastapi = {extras = ["standart"], version = "^0.115.5"}
 asyncpg = "^0.30.0"
 lxml = "^5.3.0"
 beautifulsoup4 = "^4.12.3"
+orjson = "^3.10.12"
+rapidfuzz = "^3.10.1"
 
 
 [tool.poetry.group.dev.dependencies]

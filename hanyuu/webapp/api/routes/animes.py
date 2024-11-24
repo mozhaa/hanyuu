@@ -1,12 +1,14 @@
 from typing import *
 
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 import hanyuu.webparse.anidb as anidb
+import hanyuu.webparse.mal as mal
+import hanyuu.webparse.anime_offline_database as aod
 
 from ...db.models import Anime
 from ...deps import SessionDep
@@ -49,5 +51,12 @@ async def read_animes(session: SessionDep, page: int = 1) -> List[Anime]:
 
 
 @router.get("/anime/anidb/{anime_id}", response_class=HTMLResponse)
-async def read_anime(anime_id: int) -> Any:
+async def read_anidb_page(anime_id: int) -> Any:
     return await anidb.get_page(anime_id)
+
+
+@router.get("/animes/search", response_class=JSONResponse)
+async def search_anime(query: str) -> Any:
+    if len(query) == 0:
+        return []
+    return aod.search(query)
