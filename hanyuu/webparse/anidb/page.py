@@ -1,7 +1,12 @@
+import re
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import *
 
-from bs4 import BeautifulSoup as bs
+from pyquery import PyQuery as pq
+
+from hanyuu.database.models import Category, QItem
+
+from .tools import get_page
 
 
 def default(value: Any):
@@ -19,28 +24,37 @@ def default(value: Any):
 
 class Page:
     def __init__(self, html: str) -> None:
-        self.page = bs(html, features="lxml")
+        self.page = pq(html)
+
+    @classmethod
+    async def from_id(cls, anidb_id: int) -> Self:
+        return cls(await get_page(anidb_id))
 
     def _parse_datetime(self, s: str) -> datetime:
         return datetime.strptime(s, "%Y-%m-%d")
 
     @property
+    def anidb_id(self) -> int:
+        url = self.page('meta[name="anidb-url"]').eq(0).attr("data-anidb-url")
+        return int(re.search("aid=([0-9]+)", url).group(1))
+
+    @property
     @default(None)
     def airing_start(self) -> Optional[datetime]:
         return self._parse_datetime(
-            self.page.find('span[itemprop="startDate"]').attrs["href"]
+            self.page('span[itemprop="startDate"]').eq(0).attr("content")
         )
 
     @property
     @default(None)
     def airing_end(self) -> Optional[datetime]:
         return self._parse_datetime(
-            self.page.find('span[itemprop="endDate"]').attrs["content"]
+            self.page('span[itemprop="endDate"]').eq(0).attr("content")
         )
 
     @property
     def mal_url(self) -> str:
-        mal_buttons = self._main_page.find(".i_resource_mal")
+        mal_buttons = self.page.find(".i_resource_mal").eq(0)
         href = mal_buttons.attr["href"]
         if href is not None:
             return href
@@ -50,25 +64,54 @@ class Page:
     @property
     def title(self) -> str:
         return (
-            self.page.find("th", class_="field", string="Main Title")
-            .find_next("span", itemprop="name")
-            .text
+            self.page('th.field:contains("Main Title")')
+            .eq(0)
+            .next_all()
+            .children('span[itemprop="name"]')
+            .eq(0)
+            .text()
         )
 
-    # @property
-    # @default([])
-    # def qitems(self) -> List[Any]:
-    #     table = self.page.find("table", id="songlist").findChild("tbody")
-    #     qitem = None
-    #     qitems = []
-    #     for line in table.children:
-    #         if qitem != {}:
-    #             qitems.append(qitem)
-    #             qitem = {}
-    #         if "rowspan" not in line["class"]:
-    #             qitem["category"] = line.find("td", class_="reltype").text()
-    #             qitem["song_name"] = line.find("td", {"class": ["name", "song"]}).text()
-    #         credit = line.find("td", class_="credit").text()
-    #         staff = line.find("td", {"class": ["name", "creator"]}).text()
-    #         if "performed" in credit.lower():
-    #             qitem["song_artist"] = staff
+    @property
+    @default([])
+    def qitems(self) -> List[Any]:
+        qitems = []
+        counters = {}
+        for song in self.page("table#songlist > tbody td.name.song"):
+            song = pq(song)
+            category = (
+                song.parent()
+                .prev_all()
+                .children()
+                .extend(song.prev_all())
+                .filter(".reltype")
+                .eq(-1)
+                .text()
+                .strip()
+                .lower()
+            )
+            if category == "opening":
+                category = Category.Opening
+            elif category == "ending":
+                category = Category.Ending
+            else:
+                break
+            number = counters[category] = counters.get(category, 0) + 1
+            name = song.text().strip()
+            name = name if name != "" else None
+            try:
+                artist = song.next_all("td.name.creator").text().strip()
+            except:
+                artist = None
+            anidb_id = int(song("a").eq(0).attr("href").split("/")[-1])
+            qitems.append(
+                QItem(
+                    anime_id=self.anidb_id,
+                    category=category,
+                    number=number,
+                    song_name=name,
+                    song_artist=artist,
+                    song_anidb_id=anidb_id,
+                )
+            )
+        return qitems

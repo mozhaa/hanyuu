@@ -55,9 +55,9 @@ class QItem(BaseWithID):
     anime_id: Mapped[int] = mapped_column(ForeignKey("anime.id"))
     category: Mapped[Category] = mapped_column(types.Enum(Category))
     number: Mapped[int]
-    version: Mapped[str] = mapped_column(types.String(32), default="")
     song_artist: Mapped[Optional[str]]
     song_name: Mapped[Optional[str]]
+    song_anidb_id: Mapped[Optional[int]]
 
     anime: Mapped["Anime"] = relationship(back_populates="qitems")
     sources: Mapped[List["QItemSource"]] = relationship(cascade="all, delete")

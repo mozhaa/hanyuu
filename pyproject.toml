@@ -15,9 +15,11 @@ pydantic-settings = "^2.6.1"
 fastapi = {extras = ["standart"], version = "^0.115.5"}
 asyncpg = "^0.30.0"
 lxml = "^5.3.0"
-beautifulsoup4 = "^4.12.3"
 orjson = "^3.10.12"
 rapidfuzz = "^3.10.1"
+filelock = "^3.16.1"
+aiofiles = "^24.1.0"
+pyquery = "^2.0.1"
 
 
 [tool.poetry.group.dev.dependencies]

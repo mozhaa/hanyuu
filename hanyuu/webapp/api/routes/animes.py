@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 import hanyuu.webparse.anidb as anidb
 import hanyuu.webparse.anime_offline_database as aod
 from hanyuu.config import getenv
-from hanyuu.webapp.db.models import Anime
+from hanyuu.database.models import Anime
 from hanyuu.webapp.deps import SessionDep
 
 router = APIRouter()

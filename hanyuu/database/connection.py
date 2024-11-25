@@ -1,9 +1,8 @@
-from typing import AsyncIterator
-
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from hanyuu.config import get_settings
+
 from .models import Base
 
 
@@ -28,7 +27,7 @@ class Database:
         self.connected = True
 
     @property
-    def async_session(self) -> AsyncSession:
+    def async_session(self) -> async_sessionmaker[AsyncSession]:
         return self._async_session
 
     async def create_tables(self) -> None:
@@ -44,12 +43,14 @@ class Database:
         await self.create_tables()
 
 
-db = Database()
+connections = {}
 
 
-async def get_session() -> AsyncIterator[AsyncSession]:
-    if not db.connected:
+async def get_db(conn_name: str) -> Database:
+    global connections
+    if conn_name not in connections:
+        db = Database()
         db.connect()
         await db.create_tables()
-    async with db.async_session(expire_on_commit=False) as session:
-        yield session
+        connections[conn_name] = db
+    return connections[conn_name]
