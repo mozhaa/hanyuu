@@ -54,3 +54,21 @@ class Page:
             .find_next("span", itemprop="name")
             .text
         )
+
+    # @property
+    # @default([])
+    # def qitems(self) -> List[Any]:
+    #     table = self.page.find("table", id="songlist").findChild("tbody")
+    #     qitem = None
+    #     qitems = []
+    #     for line in table.children:
+    #         if qitem != {}:
+    #             qitems.append(qitem)
+    #             qitem = {}
+    #         if "rowspan" not in line["class"]:
+    #             qitem["category"] = line.find("td", class_="reltype").text()
+    #             qitem["song_name"] = line.find("td", {"class": ["name", "song"]}).text()
+    #         credit = line.find("td", class_="credit").text()
+    #         staff = line.find("td", {"class": ["name", "creator"]}).text()
+    #         if "performed" in credit.lower():
+    #             qitem["song_artist"] = staff

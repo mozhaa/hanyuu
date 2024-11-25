@@ -6,10 +6,12 @@ import orjson
 from rapidfuzz import process
 from rapidfuzz.fuzz import partial_token_ratio
 
+from hanyuu.config import getenv
+
 
 @cache
 def get_database(
-    filename: str = "anime-offline-database-minified.json",
+    filename: str = f"{getenv("resources_dir")}/anime-offline-database-minified.json",
     only_on_anidb: bool = True,
 ) -> Dict[str, Any]:
     anidb_regexp = re.compile("anidb.net")

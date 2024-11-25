@@ -1,0 +1,32 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script
+        src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <script src="{{ url_for('static', path='/js/script.js') }}"></script>
+    <title>Hanyuu</title>
+</head>
+<body>
+    <table class="c-animes">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>AniDB ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for anime in animes %}
+                <tr data-href="{{ url_for('read_anidb_page', anime_id=anime.id) }}">
+                    <th>{{ anime.title }}</th>
+                    <td>{{ anime.id }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </div>
+</body>
+</html>

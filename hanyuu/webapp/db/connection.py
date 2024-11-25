@@ -3,7 +3,7 @@ from typing import AsyncIterator
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from ..config import get_settings
+from hanyuu.config import get_settings
 from .models import Base
 
 
