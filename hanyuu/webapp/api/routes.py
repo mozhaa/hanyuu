@@ -26,7 +26,7 @@ class AnimeOut(BaseModel):
     title: str
 
 
-@router.post("/animes/", response_model=AnimeOut)
+@router.post("/anime/", response_model=AnimeOut)
 async def create_anime(session: SessionDep, anime: AnimeIn) -> Anime:
     page = anidb.Page(await anidb.get_page(anime.id))
     anime = Anime(id=anime.id, title=page.title)
