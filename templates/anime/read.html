@@ -8,25 +8,20 @@
         crossorigin="anonymous"
     ></script>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
-    <script src="{{ url_for('static', path='/js/script.js') }}"></script>
     <title>Hanyuu</title>
 </head>
 <body>
     <table class="c-animes">
         <thead>
             <tr>
-                <th>Title</th>
-                <th>AniDB ID</th>
+                <td>{{ anime.title_ro }}</td>
+                <td>{{ anime.id }}</td>
+                <img loading="lazy" src="{{ shiki.poster_url }}" alt="Anime poster">
             </tr>
-        </thead>
-        <tbody>
-            {% for anime in animes %}
-                <tr data-href="{{ url_for('read_anidb_page', anime_id=anime.id) }}">
-                    <th>{{ anime.title }}</th>
-                    <td>{{ anime.id }}</td>
-                </tr>
+            {% for qitem in qitems %}
+                <p>{{ qitem.category }} {{ qitem.number }}</p>
             {% endfor %}
-        </tbody>
-    </div>
+        </thead>
+    </table>
 </body>
 </html>

@@ -4,7 +4,7 @@ from typing import *
 
 import orjson
 from rapidfuzz import process
-from rapidfuzz.fuzz import partial_token_ratio
+from rapidfuzz.fuzz import partial_ratio
 
 from hanyuu.config import getenv
 
@@ -27,20 +27,24 @@ def get_database(
     return db
 
 
-def search(query: str, limit: int = 5) -> List[Dict[str, Any]]:
+def search(query: str, limit: int, cutoff: float = 80) -> List[Dict[str, Any]]:
     def processor(item) -> str:
-        return (" ".join([item["title"]] + item["synonyms"])).lower()
+        return ("|||".join([item["title"]] + item["synonyms"])).lower()
 
     def query_preprocess(pattern: str):
         return {"title": pattern, "synonyms": []}
+
+    def result_postprocess(result: List[Any]) -> List[Any]:
+        return [item[0] for item in result]
 
     db = get_database()
     result = process.extract(
         query_preprocess(query),
         db["data"],
         processor=processor,
-        scorer=partial_token_ratio,
-        limit=10,
+        scorer=partial_ratio,
+        limit=limit,
+        score_cutoff=cutoff,
     )
 
-    return result
+    return result_postprocess(result)

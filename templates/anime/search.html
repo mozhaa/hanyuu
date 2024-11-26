@@ -1,0 +1,18 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script
+        src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <title>Hanyuu</title>
+</head>
+<body>
+    {% for anime in animes %}
+        <h2><a href="{{ anime['sources'][0] }}">{{ anime["title"] }}</a></h2>
+    {% endfor %}
+</body>
+</html>

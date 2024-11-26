@@ -37,7 +37,11 @@ class Anime(Base):
     __tablename__ = "anime"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str]
+    mal_id: Mapped[int] = mapped_column(nullable=False, unique=True)
+    title_ro: Mapped[str] = mapped_column(nullable=False)
+    title_en: Mapped[str]
+    poster_thumb_url: Mapped[str]
+    poster_url: Mapped[str]
 
     qitems: Mapped[List["QItem"]] = relationship(
         back_populates="anime", cascade="all, delete"

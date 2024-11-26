@@ -6,20 +6,8 @@ from pyquery import PyQuery as pq
 
 from hanyuu.database.models import Category, QItem
 
+from ..utils import default
 from .tools import get_page
-
-
-def default(value: Any):
-    def decorator(wrapped: Callable[..., Any]) -> Callable[..., Any]:
-        def wrapper(*args, **kwargs) -> Any:
-            try:
-                return wrapped(*args, **kwargs)
-            except:
-                return value
-
-        return wrapper
-
-    return decorator
 
 
 class Page:
@@ -37,6 +25,22 @@ class Page:
     def anidb_id(self) -> int:
         url = self.page('meta[name="anidb-url"]').eq(0).attr("data-anidb-url")
         return int(re.search("aid=([0-9]+)", url).group(1))
+
+    @property
+    def mal_id(self) -> int:
+        return int(re.search("anime/([0-9]+)", self.mal_url).group(1))
+
+    @property
+    @default("https://shikimori.one/assets/globals/missing/main.png")
+    def poster_url(self) -> str:
+        return self.page('meta[property="og:image"]').attr("content")
+
+    @property
+    def poster_thumb_url(self) -> str:
+        poster_url = self.poster_url
+        if "shikimori.one" not in poster_url:
+            return f"{poster_url}-thumb.jpg"
+        return "https://shikimori.one/assets/globals/missing/preview_animanga.png"
 
     @property
     @default(None)
@@ -62,7 +66,7 @@ class Page:
             return mal_buttons.siblings("a").eq(0).attr["href"]
 
     @property
-    def title(self) -> str:
+    def title_ro(self) -> str:
         return (
             self.page('th.field:contains("Main Title")')
             .eq(0)
@@ -71,6 +75,24 @@ class Page:
             .eq(0)
             .text()
         )
+
+    @default(None)
+    def title_by_language(self, language: str) -> Optional[str]:
+        return (
+            self.page(f'.g_definitionlist span[title="language: {language}"]')
+            .parent("td.value")
+            .find("label")
+            .text()
+            .strip()
+        )
+
+    @property
+    def title_en(self) -> str:
+        return self.title_by_language("english")
+
+    @property
+    def title_jp(self) -> str:
+        return self.title_by_language("japanese")
 
     @property
     @default([])
