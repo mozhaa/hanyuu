@@ -18,7 +18,7 @@
                 <td>{{ anime.id }}</td>
                 <img loading="lazy" src="{{ shiki.poster_url }}" alt="Anime poster">
             </tr>
-            {% for qitem in qitems %}
+            {% for qitem in anime.qitems %}
                 <p>{{ qitem.category }} {{ qitem.number }}</p>
             {% endfor %}
         </thead>

@@ -1,9 +1,8 @@
 from typing import *
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 from sqlalchemy import select
 
 import hanyuu.webparse.anidb as anidb
@@ -17,15 +16,6 @@ router = APIRouter()
 templates = Jinja2Templates(directory=getenv("templates_dir"))
 
 
-class AnimeIn(BaseModel):
-    id: int
-
-
-class AnimeOut(BaseModel):
-    id: int
-    title: str
-
-
 @router.get("/animes", response_class=HTMLResponse)
 async def read_animes(request: Request, session: SessionDep, page: int = 1) -> Any:
     page_size = 20
@@ -36,7 +26,7 @@ async def read_animes(request: Request, session: SessionDep, page: int = 1) -> A
         .offset((page - 1) * page_size)
     )
     return templates.TemplateResponse(
-        request=request, name="animes/read_all.html", context={"animes": result.all()}
+        request=request, name="anime/read_all.html", context={"animes": result.all()}
     )
 
 
@@ -59,29 +49,35 @@ async def read_anime(request: Request, session: SessionDep, anime_id: int) -> An
     anime = await session.get(Anime, anime_id)
     shiki_page = await shiki.Page.from_mal_id(anime.mal_id)
     qitems = await anime.awaitable_attrs.qitems
+    for qitem in qitems:
+        sources = await qitem.awaitable_attrs.sources
+        for source in sources:
+            await source.awaitable_attrs.timings
+        await qitem.awaitable_attrs.difficulties
     return templates.TemplateResponse(
         request=request,
         name="anime/read.html",
-        context={"anime": anime, "shiki": shiki_page, "qitems": qitems},
+        context={"anime": anime, "shiki": shiki_page},
     )
 
 
-@router.post("/anime", response_model=AnimeOut)
-async def create_anime(session: SessionDep, anime: AnimeIn) -> Anime:
-    result = await session.get(Anime, anime.id)
-    if result is None:
-        page = anidb.Page(await anidb.get_page(anime.id))
-        result = Anime(
-            id=anime.id,
-            mal_id=page.mal_id,
-            title_ro=page.title_ro,
-            title_en=page.title_en,
-            poster_url=page.poster_url,
-            poster_thumb_url=page.poster_thumb_url,
+@router.post("/anime", status_code=201)
+async def create_anime(session: SessionDep, anime_id: int) -> Any:
+    if await session.get(Anime, anime_id) is not None:
+        return Response(
+            content=f"Anime with id={anime_id} already exists", status_code=400
         )
-        session.add(result)
-        await session.commit()
-    return RedirectResponse(router.url_path_for("read_anime", anime_id=anime.id))
+    page = anidb.Page(await anidb.get_page(anime_id))
+    result = Anime(
+        id=anime_id,
+        mal_id=page.mal_id,
+        title_ro=page.title_ro,
+        title_en=page.title_en,
+        poster_url=page.poster_url,
+        poster_thumb_url=page.poster_thumb_url,
+    )
+    session.add(result)
+    await session.commit()
 
 
 @router.get("/anime/anidb/{anime_id}", response_class=HTMLResponse)

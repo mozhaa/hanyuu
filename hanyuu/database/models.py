@@ -61,7 +61,6 @@ class QItem(BaseWithID):
     number: Mapped[int]
     song_artist: Mapped[Optional[str]]
     song_name: Mapped[Optional[str]]
-    song_anidb_id: Mapped[Optional[int]]
 
     anime: Mapped["Anime"] = relationship(back_populates="qitems")
     sources: Mapped[List["QItemSource"]] = relationship(cascade="all, delete")
@@ -79,6 +78,7 @@ class QItemSource(BaseWithID):
     platform: Mapped[str]
     path: Mapped[str]
     added_by: Mapped[str]
+    verified: Mapped[bool] = mapped_column(default=False)
 
     qitem: Mapped["QItem"] = relationship(back_populates="sources")
     timings: Mapped[List["QItemSourceTiming"]] = relationship(cascade="all, delete")

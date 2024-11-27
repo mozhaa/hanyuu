@@ -99,8 +99,12 @@ class Page:
     def qitems(self) -> List[Any]:
         qitems = []
         counters = {}
+        anidb_ids = set()
         for song in self.page("table#songlist > tbody td.name.song"):
             song = pq(song)
+            anidb_id = int(song("a").eq(0).attr("href").split("/")[-1])
+            if anidb_id in anidb_ids:
+                continue
             category = (
                 song.parent()
                 .prev_all()
@@ -125,7 +129,7 @@ class Page:
                 artist = song.next_all("td.name.creator").text().strip()
             except:
                 artist = None
-            anidb_id = int(song("a").eq(0).attr("href").split("/")[-1])
+            anidb_ids.add(anidb_id)
             qitems.append(
                 QItem(
                     anime_id=self.anidb_id,
@@ -133,7 +137,6 @@ class Page:
                     number=number,
                     song_name=name,
                     song_artist=artist,
-                    song_anidb_id=anidb_id,
                 )
             )
         return qitems
