@@ -1,19 +1,28 @@
 from typing import *
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse, Response
+import asyncio
+from fastapi.responses import HTMLResponse, JSONResponse, Response, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 
-import hanyuu.webparse.anidb as anidb
-import hanyuu.webparse.anime_offline_database as aod
 import hanyuu.webparse.shiki as shiki
+import hanyuu.webparse.anidb as anidb
 from hanyuu.config import getenv
-from hanyuu.database.models import Anime
+from hanyuu.database.models import Anime, AODAnime
 from hanyuu.webapp.deps import SessionDep
 
 router = APIRouter()
 templates = Jinja2Templates(directory=getenv("templates_dir"))
+
+
+def redirect_to(from_url: str, to_name: str) -> None:
+    router.get(from_url, response_class=RedirectResponse)(
+        lambda: RedirectResponse(router.url_path_for(to_name))
+    )
+
+
+redirect_to("/", "read_animes")
 
 
 @router.get("/animes", response_class=HTMLResponse)
@@ -32,7 +41,7 @@ async def read_animes(request: Request, session: SessionDep, page: int = 1) -> A
 
 @router.get("/animes/complete/search", response_class=JSONResponse)
 async def search_animes_autocomplete(q: str) -> Any:
-    return aod.search(query=q, limit=10)
+    return shiki.search(query=q, limit=10)
 
 
 @router.get("/animes/search", response_class=JSONResponse)
@@ -40,14 +49,13 @@ async def search_animes(request: Request, q: str) -> Any:
     return templates.TemplateResponse(
         request=request,
         name="anime/search.html",
-        context={"animes": aod.search(query=q, limit=30, cutoff=60)},
+        context={"animes": shiki.search(query=q, limit=30)},
     )
 
 
-@router.get("/anime/{anime_id}", response_class=HTMLResponse)
-async def read_anime(request: Request, session: SessionDep, anime_id: int) -> Any:
-    anime = await session.get(Anime, anime_id)
-    shiki_page = await shiki.Page.from_mal_id(anime.mal_id)
+@router.get("/anime/{mal_id}", response_class=HTMLResponse)
+async def read_anime(request: Request, session: SessionDep, mal_id: int) -> Any:
+    anime = await session.get(Anime, mal_id)
     qitems = await anime.awaitable_attrs.qitems
     for qitem in qitems:
         sources = await qitem.awaitable_attrs.sources
@@ -57,37 +65,55 @@ async def read_anime(request: Request, session: SessionDep, anime_id: int) -> An
     return templates.TemplateResponse(
         request=request,
         name="anime/read.html",
-        context={"anime": anime, "shiki": shiki_page},
+        context={"anime": anime},
     )
 
 
 @router.post("/anime", status_code=201)
-async def create_anime(session: SessionDep, anime_id: int) -> Any:
-    if await session.get(Anime, anime_id) is not None:
+async def create_anime(session: SessionDep, mal_id: int) -> Any:
+    if await session.get(Anime, mal_id) is not None:
         return Response(
-            content=f"Anime with id={anime_id} already exists", status_code=400
+            content=f"Anime with id={mal_id} already exists", status_code=400
         )
-    page = anidb.Page(await anidb.get_page(anime_id))
+    aod_anime = await session.get(AODAnime, mal_id)
+    anidb_page, shiki_anime = await asyncio.gather(
+        anidb.Page.from_id(aod_anime.anidb_id), shiki.get_anime(mal_id)
+    )
+    ratings_count = sum([score["count"] for score in shiki_anime["scoresStats"]])
+    rating = (
+        sum([score["count"] * score["score"] for score in shiki_anime["scoresStats"]])
+        / ratings_count
+    )
+    statuses = dict(
+        [(status["status"], status["count"]) for status in shiki_anime["statusesStats"]]
+    )
     result = Anime(
-        id=anime_id,
-        mal_id=page.mal_id,
-        title_ro=page.title_ro,
-        title_en=page.title_en,
-        poster_url=page.poster_url,
-        poster_thumb_url=page.poster_thumb_url,
+        mal_id=mal_id,
+        anidb_id=aod_anime.anidb_id,
+        shiki_title_ro=shiki_anime["name"],
+        shiki_title_ru=shiki_anime["russian"],
+        shiki_title_en=shiki_anime["english"],
+        shiki_title_jp=shiki_anime["japanese"],
+        shiki_url=shiki_anime["url"],
+        shiki_status=shiki_anime["status"],
+        shiki_poster_url=shiki_anime["poster"]["originalUrl"],
+        shiki_poster_thumb_url=shiki_anime["poster"]["mainUrl"],
+        shiki_episodes=shiki_anime["episodes"],
+        shiki_duration=shiki_anime["duration"],
+        shiki_rating=rating,
+        shiki_ratings_count=ratings_count,
+        shiki_planned=statuses["planned"],
+        shiki_completed=statuses["completed"],
+        shiki_watching=statuses["watching"],
+        shiki_dropped=statuses["dropped"],
+        shiki_on_hold=statuses["on_hold"],
+        shiki_age_rating=shiki_anime["rating"],
+        shiki_aired_on=shiki_anime["airedOn"],
+        shiki_released_on=shiki_anime["releasedOn"],
+        shiki_videos=[v.values() for v in shiki_anime["videos"]],
+        shiki_synonyms=shiki_anime["synonyms"],
+        shiki_genres=[g["name"] for g in shiki_anime["genres"]],
+        qitems=anidb_page.qitems
     )
     session.add(result)
     await session.commit()
-
-
-@router.get("/anime/anidb/{anime_id}", response_class=HTMLResponse)
-async def read_anidb_page(anime_id: int) -> Any:
-    return await anidb.get_page(anime_id)
-
-
-@router.post("/animes/search", response_class=JSONResponse)
-async def search_anime(query: str) -> Any:
-    # TODO: we can use shiki grqphql search, because it supports russian
-    if len(query) == 0:
-        return []
-    return aod.search(query)

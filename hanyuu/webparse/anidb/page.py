@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from typing import *
 
 from pyquery import PyQuery as pq
@@ -18,85 +17,14 @@ class Page:
     async def from_id(cls, anidb_id: int) -> Self:
         return cls(await get_page(anidb_id))
 
-    def _parse_datetime(self, s: str) -> datetime:
-        return datetime.strptime(s, "%Y-%m-%d")
-
     @property
     def anidb_id(self) -> int:
         url = self.page('meta[name="anidb-url"]').eq(0).attr("data-anidb-url")
         return int(re.search("aid=([0-9]+)", url).group(1))
 
     @property
-    def mal_id(self) -> int:
-        return int(re.search("anime/([0-9]+)", self.mal_url).group(1))
-
-    @property
-    @default("https://shikimori.one/assets/globals/missing/main.png")
-    def poster_url(self) -> str:
-        return self.page('meta[property="og:image"]').attr("content")
-
-    @property
-    def poster_thumb_url(self) -> str:
-        poster_url = self.poster_url
-        if "shikimori.one" not in poster_url:
-            return f"{poster_url}-thumb.jpg"
-        return "https://shikimori.one/assets/globals/missing/preview_animanga.png"
-
-    @property
-    @default(None)
-    def airing_start(self) -> Optional[datetime]:
-        return self._parse_datetime(
-            self.page('span[itemprop="startDate"]').eq(0).attr("content")
-        )
-
-    @property
-    @default(None)
-    def airing_end(self) -> Optional[datetime]:
-        return self._parse_datetime(
-            self.page('span[itemprop="endDate"]').eq(0).attr("content")
-        )
-
-    @property
-    def mal_url(self) -> str:
-        mal_buttons = self.page.find(".i_resource_mal").eq(0)
-        href = mal_buttons.attr["href"]
-        if href is not None:
-            return href
-        else:
-            return mal_buttons.siblings("a").eq(0).attr["href"]
-
-    @property
-    def title_ro(self) -> str:
-        return (
-            self.page('th.field:contains("Main Title")')
-            .eq(0)
-            .next_all()
-            .children('span[itemprop="name"]')
-            .eq(0)
-            .text()
-        )
-
-    @default(None)
-    def title_by_language(self, language: str) -> Optional[str]:
-        return (
-            self.page(f'.g_definitionlist span[title="language: {language}"]')
-            .parent("td.value")
-            .find("label")
-            .text()
-            .strip()
-        )
-
-    @property
-    def title_en(self) -> str:
-        return self.title_by_language("english")
-
-    @property
-    def title_jp(self) -> str:
-        return self.title_by_language("japanese")
-
-    @property
     @default([])
-    def qitems(self) -> List[Any]:
+    def qitems(self) -> List[QItem]:
         qitems = []
         counters = {}
         anidb_ids = set()

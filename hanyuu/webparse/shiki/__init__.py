@@ -1,1 +1,1 @@
-from .page import *
+from .tools import get_anime, search

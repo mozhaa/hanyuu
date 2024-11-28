@@ -1,7 +1,29 @@
+.c-page {
+    max-width: 50%;
+    margin: 1em auto;
+}
+
 .c-animes {
-    margin: 5em auto;
-    width: 50%;
-    padding: 2em;
-    background-color: #eee;
-    border-radius: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.anime-card {
+    border: 1px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.anime-card:hover {
+    border-color: gray;
+}
+
+input.search-bar {
+    width: 100%;
+    font-size: 1.2em;
+    padding: .2em;
+}
+
+.search-results {
+
 }

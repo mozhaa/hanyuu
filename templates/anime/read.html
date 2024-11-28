@@ -14,9 +14,8 @@
     <table class="c-animes">
         <thead>
             <tr>
-                <td>{{ anime.title_ro }}</td>
-                <td>{{ anime.id }}</td>
-                <img loading="lazy" src="{{ shiki.poster_url }}" alt="Anime poster">
+                <td>{{ anime.shiki_title_ro }}</td>
+                <img loading="lazy" src="{{ anime.shiki_poster_url }}" alt="Anime poster">
             </tr>
             {% for qitem in anime.qitems %}
                 <p>{{ qitem.category }} {{ qitem.number }}</p>
