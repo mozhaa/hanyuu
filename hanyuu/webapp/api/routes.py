@@ -78,6 +78,17 @@ async def read_anime(request: Request, session: SessionDep, mal_id: int) -> Any:
     )
 
 
+@router.delete("/anime")
+async def delete_anime(session: SessionDep, mal_id: int) -> Any:
+    anime = await session.get(Anime, mal_id)
+    if anime is None:
+        return Response(
+            content=f"Anime with id={mal_id} does not exist", status_code=400
+        )
+    await session.delete(anime)
+    await session.commit()
+
+
 @router.post("/anime", status_code=201)
 async def create_anime(session: SessionDep, mal_id: int) -> Any:
     if await session.get(Anime, mal_id) is not None:
