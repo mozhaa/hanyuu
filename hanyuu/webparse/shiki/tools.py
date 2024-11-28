@@ -7,7 +7,7 @@ from ..utils import default_headers
 
 graphql_url = "https://shikimori.one/api/graphql"
 graphql_args = (
-    "name, russian, english, japanese, synonyms, "
+    "id, name, russian, english, japanese, synonyms, "
     "kind, rating, score, status, episodes, duration, "
     "airedOn { year month day }, releasedOn { year month day }, url, "
     "poster { originalUrl mainUrl }, genres { name }, "

@@ -1,0 +1,85 @@
+.c-search-results {
+    margin-top: 2em;
+    display: grid;
+    gap: 3em 1em;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.search-result {
+    display: grid;
+    grid-template-areas:
+        "img tl1 tl1"
+        "img tl2 tl2"
+        "img bt1 bt2";
+    gap: .5em;
+    grid-template-columns: 2fr 3fr 1fr;
+    grid-template-rows: min-content 1fr min-content;
+
+    &>img {
+        grid-area: img;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 3 / 4;
+        object-fit: cover;
+    }
+
+    &>span {
+        margin: .4em 0 0 0;
+        line-height: 1em;
+        display: block;
+        overflow: hidden;
+
+        &.main-title {
+            grid-area: tl1;
+            font-weight: 600;
+        }
+
+        &.secondary-title {
+            grid-area: tl2;
+            font-weight: 300;
+            font-size: .8em;
+        }
+    }
+
+    & a {
+        text-decoration: none;
+    }
+
+    &>.button {
+        border: 0;
+        cursor: pointer;
+        padding: .5em;
+        color: white;
+        text-align: center;
+
+        &:hover {
+            filter: brightness(90%);
+        }
+
+        &.add-button {
+            grid-area: bt1;
+            background-color: #9BEF86;
+        }
+
+        &.goto-button {
+            display: none;
+            grid-area: bt1;
+            background-color: #EA85C0;
+        }
+
+        &.link-button {
+            grid-area: bt2;
+            background-color: #A1DDED;
+        }
+    }
+
+    &.added {
+        & .add-button {
+            display: none;
+        }
+
+        & .goto-button {
+            display: block;
+        }
+    }
+}

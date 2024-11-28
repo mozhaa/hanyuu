@@ -7,12 +7,32 @@
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
         crossorigin="anonymous"
     ></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/search.css') }}">
+    <script src="{{ url_for('static', path='/js/script.js') }}"></script>
     <title>Hanyuu</title>
 </head>
 <body>
-    {% for anime in animes %}
-        <h2><a href="{{ anime['sources'][0] }}">{{ anime["title"] }}</a></h2>
-    {% endfor %}
+    {% include "common/nav.html" %}
+    <div class="c-page">
+        <form action="{{ url_for('search_animes') }}" method="get" id="search-form">
+            <input type="text" name="q" id="search-bar" class="search-bar">
+        </form>
+        <div class="c-search-results">
+            {% for anime in animes %}
+                <div class="search-result {{ 'added' if anime.added else '' }}" data-mal-id="{{ anime.id }}">
+                    <img loading="lazy" src="{{ anime.poster.originalUrl }}" alt="poster" class="poster">
+                    
+                    <span class="main-title">{{ anime.name }}</span>
+                    <span class="secondary-title">{{ anime.russian }}</span>
+
+                    <a class="button add-button">Add</a>
+                    <a class="button goto-button">Go to page</a>
+                    <a href="{{ anime.url }}" class="button link-button">Shiki</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 </body>
 </html>

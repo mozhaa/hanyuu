@@ -10,6 +10,7 @@
 }
 
 .c-animes {
+    margin-top: 2em;
     display: grid;
     grid-template-columns: repeat(var(--columns, 4), 1fr);
 }

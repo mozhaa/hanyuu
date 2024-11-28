@@ -15,8 +15,8 @@
 <body>
     {% include "common/nav.html" %}
     <div class="c-page">
-        <form action="" method="get" id="search-form">
-            <input type="text" name="search-query" id="search-bar" class="search-bar">
+        <form action="{{ url_for('search_animes') }}" method="get" id="search-form">
+            <input type="text" name="q" id="search-bar" class="search-bar">
         </form>
         <div class="c-animes">
             {% for anime in animes %}

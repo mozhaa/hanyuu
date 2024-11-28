@@ -39,17 +39,26 @@ async def read_animes(request: Request, session: SessionDep, page: int = 1) -> A
     )
 
 
-@router.get("/animes/complete/search", response_class=JSONResponse)
-async def search_animes_autocomplete(q: str) -> Any:
-    return shiki.search(query=q, limit=10)
-
-
 @router.get("/animes/search", response_class=JSONResponse)
-async def search_animes(request: Request, q: str) -> Any:
+async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
+    results = await shiki.search(query=q, limit=30)
+    result_ids = [int(item["id"]) for item in results]
+    already_exist, exist_in_aod = map(
+        lambda r: r.all(),
+        await asyncio.gather(
+            session.scalars(select(Anime.mal_id).where(Anime.mal_id.in_(result_ids))),
+            session.scalars(
+                select(AODAnime.mal_id).where(AODAnime.mal_id.in_(result_ids))
+            ),
+        ),
+    )
+    results = [result for result in results if int(result["id"]) in exist_in_aod]
+    for result in results:
+        result["added"] = int(result["id"]) in already_exist
     return templates.TemplateResponse(
         request=request,
         name="anime/search.html",
-        context={"animes": shiki.search(query=q, limit=30)},
+        context={"animes": results},
     )
 
 
@@ -76,6 +85,8 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
             content=f"Anime with id={mal_id} already exists", status_code=400
         )
     aod_anime = await session.get(AODAnime, mal_id)
+    if aod_anime is None:
+        return Response(content=f"No such anime with id={mal_id}", status_code=400)
     anidb_page, shiki_anime = await asyncio.gather(
         anidb.Page.from_id(aod_anime.anidb_id), shiki.get_anime(mal_id)
     )
@@ -113,7 +124,7 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
         shiki_videos=[v.values() for v in shiki_anime["videos"]],
         shiki_synonyms=shiki_anime["synonyms"],
         shiki_genres=[g["name"] for g in shiki_anime["genres"]],
-        qitems=anidb_page.qitems
+        qitems=anidb_page.qitems,
     )
     session.add(result)
     await session.commit()
