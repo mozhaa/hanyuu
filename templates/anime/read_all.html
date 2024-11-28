@@ -15,15 +15,15 @@
 <body>
     {% include "common/nav.html" %}
     <div class="c-page">
-        <form action="" method="post" id="search-form">
+        <form action="" method="get" id="search-form">
             <input type="text" name="search-query" id="search-bar" class="search-bar">
-            <div id="search-results" class="search-results"></div>
         </form>
         <div class="c-animes">
             {% for anime in animes %}
                 <article class="anime-card" data-href="{{ url_for('read_anime', mal_id=anime.mal_id) }}">
-                    <img loading="lazy" src="{{ anime.shiki_poster_url }}" alt="poster" class="poster">
-                    <h3>{{ anime.title }}</h3>
+                    <img loading="lazy" src="{{ anime.shiki_poster_thumb_url }}" alt="poster">
+                    <span class="main-title">{{ anime.shiki_title_ro }}</span>
+                    <span class="secondary-title">{{ anime.shiki_title_ru }}</span>
                 </article>
             {% endfor %}
         </div>
