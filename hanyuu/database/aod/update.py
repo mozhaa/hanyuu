@@ -43,13 +43,22 @@ async def update() -> None:
                 continue
         if mal_id is None or anidb_id is None:
             continue
-
+        poster_url = (
+            item["picture"]
+            if "no_pic.png" not in item["picture"]
+            else "https://shikimori.one/assets/globals/missing/main.png"
+        )
+        poster_thumb_url = (
+            item["thumbnail"]
+            if "no_pic_thumbnail.png" not in item["thumbnail"]
+            else "https://shikimori.one/assets/globals/missing/preview_animanga.png"
+        )
         anime = AODAnime(
             anidb_id=anidb_id,
             mal_id=mal_id,
             sources=item["sources"],
-            poster_url=item["picture"],
-            poster_thumb_url=item["thumbnail"],
+            poster_url=poster_url,
+            poster_thumb_url=poster_thumb_url,
             title=item["title"],
             anime_type=AnimeType[item["type"]],
             status=Status[item["status"]],

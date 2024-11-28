@@ -90,14 +90,12 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
     anidb_page, shiki_anime = await asyncio.gather(
         anidb.Page.from_id(aod_anime.anidb_id), shiki.get_anime(mal_id)
     )
-    ratings_count = sum([score["count"] for score in shiki_anime["scoresStats"]])
+    ratings_count = sum([score[1] for score in shiki_anime["scoresStats"]])
     rating = (
-        sum([score["count"] * score["score"] for score in shiki_anime["scoresStats"]])
+        sum([score[0] * score[1] for score in shiki_anime["scoresStats"]])
         / ratings_count
     )
-    statuses = dict(
-        [(status["status"], status["count"]) for status in shiki_anime["statusesStats"]]
-    )
+    statuses = dict([(status[0], status[1]) for status in shiki_anime["statusesStats"]])
     result = Anime(
         mal_id=mal_id,
         anidb_id=aod_anime.anidb_id,
