@@ -52,13 +52,9 @@
         color: white;
         text-align: center;
 
-        &:hover {
-            filter: brightness(90%);
-        }
-
         &.add-button {
             grid-area: bt1;
-            background-color: #9BEF86;
+            background-color: #99e692;
         }
 
         &.goto-button {

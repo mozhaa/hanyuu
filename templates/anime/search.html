@@ -16,9 +16,7 @@
 <body>
     {% include "common/nav.html" %}
     <div class="c-page">
-        <form action="{{ url_for('search_animes') }}" method="get" id="search-form">
-            <input type="text" name="q" id="search-bar" class="search-bar">
-        </form>
+        {% include "common/search_bar.html" %}
         <div class="c-search-results">
             {% for anime in animes %}
                 <div class="search-result {{ 'added' if anime.added else '' }}" data-mal-id="{{ anime.id }}">
@@ -27,9 +25,9 @@
                     <span class="main-title">{{ anime.name }}</span>
                     <span class="secondary-title">{{ anime.russian }}</span>
 
-                    <a class="button add-button">Add</a>
-                    <a class="button goto-button">Go to page</a>
-                    <a href="{{ anime.url }}" class="button link-button">Shiki</a>
+                    <a class="button darken-hover add-button">Add</a>
+                    <a class="button darken-hover goto-button">Go to page</a>
+                    <a href="{{ anime.url }}" class="button darken-hover link-button">Shiki</a>
                 </div>
             {% endfor %}
         </div>

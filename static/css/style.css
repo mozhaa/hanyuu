@@ -53,18 +53,38 @@
     }
 }
 
-input.search-bar {
-    width: 100%;
-    font-size: 1.2em;
-    padding: .2em;
-    border: 1px solid gray;
-    border-radius: 5px;
+.search-form {
+    display: grid;
+    grid-template-columns: 1fr min-content;
+    gap: 2px;
 
-    --focus-color: #C9ADFF;
+    --main-color: #C9ADFF;
 
-    &:focus {
-        border-color: var(--focus-color);
-        box-shadow: 0 0 4px var(--focus-color);
-        outline: 0;
+    & input.search-bar {
+        width: 100%;
+        font-size: 1.2em;
+        padding: .4em;
+        border: 1px solid gray;
+        border-radius: 5px;
+    
+    
+        &:focus {
+            border-color: var(--main-color);
+            box-shadow: 0 0 4px var(--main-color);
+            outline: 0;
+        }
+    }
+
+    & button {
+        padding: 0 1em;
+        height: 100%;
+        border: 0;
+        border-radius: 5px;
+        background-color: var(--main-color);
+        color: white;
+
+        & > img {
+            height: 2em;
+        }
     }
 }

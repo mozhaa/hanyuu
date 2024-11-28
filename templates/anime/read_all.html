@@ -15,9 +15,7 @@
 <body>
     {% include "common/nav.html" %}
     <div class="c-page">
-        <form action="{{ url_for('search_animes') }}" method="get" id="search-form">
-            <input type="text" name="q" id="search-bar" class="search-bar">
-        </form>
+        {% include "common/search_bar.html" %}
         <div class="c-animes">
             {% for anime in animes %}
                 <article class="anime-card" data-href="{{ url_for('read_anime', mal_id=anime.mal_id) }}">
