@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, time
 from typing import List
 
 import sqlalchemy.types as types
@@ -136,8 +136,8 @@ class QItemSourceTiming(BaseWithID):
     __tablename__ = "qitem_source_timing"
 
     qitem_source_id: Mapped[int] = mapped_column(ForeignKey("qitem_source.id"))
-    guess_start: Mapped[datetime] = mapped_column(nullable=False)
-    reveal_start: Mapped[datetime] = mapped_column(nullable=False)
+    guess_start: Mapped[time] = mapped_column(default=time.min)
+    reveal_start: Mapped[time] = mapped_column(default=time.min)
     added_by: Mapped[str] = mapped_column(nullable=False)
 
     qitem_source: Mapped["QItemSource"] = relationship(back_populates="timings")

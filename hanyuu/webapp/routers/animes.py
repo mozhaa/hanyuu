@@ -15,6 +15,43 @@ from .utils import already_exists, no_such, templates
 router = APIRouter(prefix="/animes")
 
 
+@router.get("/", response_class=HTMLResponse)
+async def read_animes(request: Request, session: SessionDep, page: int = 1) -> Any:
+    page_size = 20
+    result = await session.scalars(
+        select(Anime)
+        .order_by(Anime.updated_at.desc())
+        .limit(page_size)
+        .offset((page - 1) * page_size)
+    )
+    return templates.TemplateResponse(
+        request=request, name="anime/read_all.html", context={"animes": result.all()}
+    )
+
+
+@router.get("/search", response_class=JSONResponse)
+async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
+    results = await shiki.search(query=q, limit=30)
+    result_ids = [int(item["id"]) for item in results]
+    already_exist, exist_in_aod = map(
+        lambda r: r.all(),
+        await asyncio.gather(
+            session.scalars(select(Anime.mal_id).where(Anime.mal_id.in_(result_ids))),
+            session.scalars(
+                select(AODAnime.mal_id).where(AODAnime.mal_id.in_(result_ids))
+            ),
+        ),
+    )
+    results = [result for result in results if int(result["id"]) in exist_in_aod]
+    for result in results:
+        result["added"] = int(result["id"]) in already_exist
+    return templates.TemplateResponse(
+        request=request,
+        name="anime/search.html",
+        context={"animes": results},
+    )
+
+
 @router.post("/", status_code=201)
 async def create_anime(session: SessionDep, mal_id: int) -> Any:
     if await session.get(Anime, mal_id) is not None:
@@ -66,6 +103,8 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
 @router.get("/{mal_id}", response_class=HTMLResponse)
 async def read_anime(request: Request, session: SessionDep, mal_id: int) -> Any:
     anime = await session.get(Anime, mal_id)
+    if anime is None:
+        return no_such("anime", id=mal_id)
     qitems = await anime.awaitable_attrs.qitems
     for qitem in qitems:
         sources = await qitem.awaitable_attrs.sources
@@ -88,40 +127,3 @@ async def delete_anime(session: SessionDep, mal_id: int) -> Any:
         )
     await session.delete(anime)
     await session.commit()
-
-
-@router.get("/", response_class=HTMLResponse)
-async def read_animes(request: Request, session: SessionDep, page: int = 1) -> Any:
-    page_size = 20
-    result = await session.scalars(
-        select(Anime)
-        .order_by(Anime.updated_at.desc())
-        .limit(page_size)
-        .offset((page - 1) * page_size)
-    )
-    return templates.TemplateResponse(
-        request=request, name="anime/read_all.html", context={"animes": result.all()}
-    )
-
-
-@router.get("/search", response_class=JSONResponse)
-async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
-    results = await shiki.search(query=q, limit=30)
-    result_ids = [int(item["id"]) for item in results]
-    already_exist, exist_in_aod = map(
-        lambda r: r.all(),
-        await asyncio.gather(
-            session.scalars(select(Anime.mal_id).where(Anime.mal_id.in_(result_ids))),
-            session.scalars(
-                select(AODAnime.mal_id).where(AODAnime.mal_id.in_(result_ids))
-            ),
-        ),
-    )
-    results = [result for result in results if int(result["id"]) in exist_in_aod]
-    for result in results:
-        result["added"] = int(result["id"]) in already_exist
-    return templates.TemplateResponse(
-        request=request,
-        name="anime/search.html",
-        context={"animes": results},
-    )

@@ -1,12 +1,14 @@
-<div class="timing" data-id="{{ timing.id }}">
-    <form action="">
-        <label for="guess-start">Guess start</label>
-        <input type="text" name="guess-start" value="{{ timing.guess_start }}">
+<div class="editable-list-item timing" data-id="{{ timing.id }}">
+    <form>
+        <input type="number" name="id" value="{{ timing.id }}" style="display: none" readonly>
+
+        <label for="guess_start">Guess start</label>
+        <input type="text" name="guess_start" value="{{ timing.guess_start }}">
         
-        <label for="reveal-start">Reveal start</label>
-        <input type="text" name="reveal-start" value="{{ timing.reveal_start }}">
+        <label for="reveal_ start">Reveal start</label>
+        <input type="text" name="reveal_start" value="{{ timing.reveal_start }}">
         
-        <button type="submit">O</button>
+        <button type="button" onclick="update_item(this)">O</button>
         <button type="button" onclick="delete_item(this)">X</button>
     </form>
 </div>

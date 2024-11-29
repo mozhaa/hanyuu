@@ -1,28 +1,30 @@
 <div class="editable-list-item qitem" data-id="{{ qitem.id }}">
-    <form action="">
+    <form>
+        <input type="number" name="id" value="{{ qitem.id }}" style="display: none" readonly>
+
         <label for="category">Category</label>
-        <select name="category">
+        <select type="number" name="category">
             {% for c in qitem.category.__class__ %}
             <option value="{{ c.value }}" {{ 'selected' if qitem.category == c else '' }}>{{ c.name }}</option>
             {% endfor %}
         </select>
 
         <label for="number">Number</label>
-        <input type="text" name="number" value="{{ qitem.number }}">
+        <input type="number" min="1" name="number" value="{{ qitem.number }}">
+
+        <label for="song_artist">Song artist</label>
+        <input type="text" name="song_artist" value="{{ qitem.song_artist }}">
         
-        <label for="song-name">Song name</label>
-        <input type="text" name="song-name" value="{{ qitem.song_name }}">
+        <label for="song_name">Song name</label>
+        <input type="text" name="song_name" value="{{ qitem.song_name }}">
 
-        <label for="song-name">Song artist</label>
-        <input type="text" name="song-artist" value="{{ qitem.song_artist }}">
-
-        <button type="submit">O</button>
+        <button type="button" onclick="update_item(this)">O</button>
         <button type="button" onclick="delete_item(this)">X</button>
     </form>
 
     <span class="editable-list-title">Difficulties</span>
     <div class="editable-list" data-base-action="/difficulties">
-        <button type="button">Add new</button>
+        <button type="button" onclick="add_item(this)">Add new</button>
         {% for difficulty in qitem.difficulties %}
             {% include "difficulty/edit.html" %}
         {% endfor %}
@@ -30,7 +32,7 @@
 
     <span class="editable-list-title">Sources</span>
     <div class="editable-list" data-base-action="/sources">
-        <button type="button">Add new</button>
+        <button type="button" onclick="add_item(this)">Add new</button>
         {% for source in qitem.sources %}
             {% include "source/edit.html" %}
         {% endfor %}

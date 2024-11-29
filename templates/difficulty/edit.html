@@ -1,9 +1,11 @@
-<div class="difficulty" data-id="{{ difficulty.id }}">
-    <form action="">
-        <label for="difficulty">Difficulty</label>
-        <input type="range" name="difficulty" min="1" max="100" value="{{ difficulty.value }}">
+<div class="editable-list-item difficulty" data-id="{{ difficulty.id }}">
+    <form>
+        <input type="number" name="id" value="{{ difficulty.id }}" style="display: none" readonly>
 
-        <button type="submit">O</button>
+        <label for="value">Difficulty</label>
+        <input type="range" name="value" min="1" max="100" value="{{ difficulty.value }}">
+
+        <button type="button" onclick="update_item(this)">O</button>
         <button type="button" onclick="delete_item(this)">X</button>
     </form>
 </div>

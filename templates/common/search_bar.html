@@ -1,4 +1,6 @@
-<form action="{{ url_for('search_animes') }}" method="get" id="search-form" class="search-form">
-    <input type="text" name="q" id="search-bar" class="search-bar">
-    <button class="darken-hover" type="submit"><img src="{{ url_for('static', path='svg/search-svgrepo-com.svg') }}" alt=""></button>
+<form action="{{ url_for('search_animes') }}" method="get" class="search-form">
+    <input type="text" name="q" class="search-bar">
+    <button class="darken-hover" type="submit">
+        <img src="{{ url_for('static', path='svg/search-svgrepo-com.svg') }}">
+    </button>
 </form>

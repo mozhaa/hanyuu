@@ -13,5 +13,10 @@ async def get_session() -> AsyncIterator[AsyncSession]:
         yield session
 
 
+def get_added_by() -> str:
+    return "manual"
+
+
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
+AddedByDep = Annotated[str, Depends(get_added_by)]
