@@ -27,3 +27,8 @@ form {
 .darken-hover:hover {
     filter: brightness(90%);
 }
+
+.c-page {
+    max-width: max(50%, 400px);
+    margin: 1em auto;
+}

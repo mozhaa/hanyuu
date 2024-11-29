@@ -8,9 +8,10 @@
         crossorigin="anonymous"
     ></script>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/search.css') }}">
-    <script src="{{ url_for('static', path='/js/script.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/search_results.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/anime_list.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/search_bar.css') }}">
+    <script src="{{ url_for('static', path='/js/search_results.js') }}"></script>
     <title>Hanyuu</title>
 </head>
 <body>
@@ -25,9 +26,9 @@
                     <span class="main-title">{{ anime.name }}</span>
                     <span class="secondary-title">{{ anime.russian }}</span>
 
-                    <a class="button darken-hover add-button">Add</a>
-                    <a class="button darken-hover goto-button">Go to page</a>
-                    <a href="{{ anime.url }}" class="button darken-hover link-button">Shiki</a>
+                    <a onclick="create_anime(this)" class="darken-hover add-button">Add</a>
+                    <a href="/animes/{{ anime.id }}" class="darken-hover goto-button">Go to page</a>
+                    <a href="{{ anime.url }}" class="darken-hover link-button">Shiki</a>
                 </div>
             {% endfor %}
         </div>

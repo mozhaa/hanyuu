@@ -76,7 +76,7 @@ async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
     )
 
 
-@router.get("/anime/{mal_id}", response_class=HTMLResponse)
+@router.get("/animes/{mal_id}", response_class=HTMLResponse)
 async def read_anime(request: Request, session: SessionDep, mal_id: int) -> Any:
     anime = await session.get(Anime, mal_id)
     qitems = await anime.awaitable_attrs.qitems
@@ -103,7 +103,7 @@ async def delete_anime(session: SessionDep, mal_id: int) -> Any:
     await session.commit()
 
 
-@router.post("/anime", status_code=201)
+@router.post("/animes", status_code=201)
 async def create_anime(session: SessionDep, mal_id: int) -> Any:
     if await session.get(Anime, mal_id) is not None:
         return already_exists("anime", mal_id=mal_id)
@@ -159,11 +159,11 @@ class QItemSchema(BaseModel):
     song_artist: str
 
 
-@router.post("/anime/{mal_id}/qitems", response_class=HTMLResponse)
-async def create_qitem(request: Request, session: SessionDep, mal_id: int) -> Any:
-    anime = await session.get(Anime, mal_id)
+@router.post("/qitems", response_class=HTMLResponse)
+async def create_qitem(request: Request, session: SessionDep, anime_id: int) -> Any:
+    anime = await session.get(Anime, anime_id)
     if anime is None:
-        return no_such("anime", mal_id=mal_id)
+        return no_such("anime", mal_id=anime_id)
     qitems = await anime.awaitable_attrs.qitems
     # take minimal excluded opening number for new number
     numbers = sorted(
@@ -175,7 +175,7 @@ async def create_qitem(request: Request, session: SessionDep, mal_id: int) -> An
             number += 1
         else:
             break
-    qitem = QItem(anime_id=mal_id, category=Category.Opening, number=number)
+    qitem = QItem(anime_id=anime_id, category=Category.Opening, number=number)
     session.add(qitem)
     session.expire_on_commit = False
     await session.commit()
@@ -184,11 +184,11 @@ async def create_qitem(request: Request, session: SessionDep, mal_id: int) -> An
         await source.awaitable_attrs.timings
     await qitem.awaitable_attrs.difficulties
     return templates.TemplateResponse(
-        request=request, name="anime/edit/qitem.html", context={"qitem": qitem}
+        request=request, name="qitem/edit.html", context={"qitem": qitem}
     )
 
 
-@router.post("/qitem")
+@router.put("/qitems")
 async def update_qitem(session: SessionDep, qitem: QItemSchema) -> Any:
     existing_qitem = await session.get(QItem, qitem.id)
     if existing_qitem is None:
@@ -201,7 +201,7 @@ async def update_qitem(session: SessionDep, qitem: QItemSchema) -> Any:
         return Response(e._message, status_code=400)
 
 
-@router.delete("/qitem/{qitem_id}")
+@router.delete("/qitems/{qitem_id}")
 async def delete_qitem(session: SessionDep, qitem_id: int) -> Any:
     qitem = await session.get(QItem, qitem_id)
     if qitem is None:

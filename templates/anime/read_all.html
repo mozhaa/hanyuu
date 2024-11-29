@@ -8,8 +8,8 @@
         crossorigin="anonymous"
     ></script>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
-    <script src="{{ url_for('static', path='/js/script.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/anime_list.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/search_bar.css') }}">
     <title>Hanyuu</title>
 </head>
 <body>
@@ -18,11 +18,11 @@
         {% include "common/search_bar.html" %}
         <div class="c-animes">
             {% for anime in animes %}
-                <article class="anime-card" data-href="{{ url_for('read_anime', mal_id=anime.mal_id) }}">
+                <a class="anime-card" href="{{ url_for('read_anime', mal_id=anime.mal_id) }}">
                     <img loading="lazy" src="{{ anime.shiki_poster_thumb_url }}" alt="poster">
                     <span class="main-title">{{ anime.shiki_title_ro }}</span>
                     <span class="secondary-title">{{ anime.shiki_title_ru }}</span>
-                </article>
+                </a>
             {% endfor %}
         </div>
     </div>

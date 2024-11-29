@@ -8,9 +8,9 @@
         crossorigin="anonymous"
     ></script>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/anime.css') }}">
-    <script src="{{ url_for('static', path='/js/edit.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/anime_page.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/editable_list.css') }}">
+    <script src="{{ url_for('static', path='/js/editable_list.js') }}"></script>
     <title>Hanyuu</title>
 </head>
 <body>
@@ -21,11 +21,11 @@
             <h2 class="main-title">{{ anime.shiki_title_ro }}</h2>
             <h3 class="secondary-title">{{ anime.shiki_title_ru }}</h3>
         </div>
-        <span class="collapsible-list-title">Quiz Items</span>
-        <div class="collapsible-list">
-            <button type="button" onclick="add_new(this)" data-action="/anime/{{ anime.mal_id }}/qitems">Add new</button>
+        <span class="editable-list-title">Quiz Items</span>
+        <div class="editable-list">
+            <button type="button" onclick="add_new(this)" data-action="/animes/{{ anime.mal_id }}/qitems">Add new</button>
             {% for qitem in anime.qitems %}
-                {% include "anime/edit/qitem.html" %}
+                {% include "qitem/edit.html" %}
             {% endfor %}
         </div>
     </div>

@@ -13,11 +13,11 @@
         <button type="button">X</button>
     </form>
     
-    <span class="collapsible-list-title">Timings</span>
-    <div class="collapsible-list">
+    <span class="editable-list-title">Timings</span>
+    <div class="editable-list">
         <button type="button">Add new</button>
         {% for timing in source.timings %}
-        {% include "anime/edit/timing.html" %}
+        {% include "timing/edit.html" %}
         {% endfor %}
     </div>
 </div>

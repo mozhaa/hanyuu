@@ -19,19 +19,19 @@
         <button type="button">X</button>
     </form>
 
-    <span class="collapsible-list-title">Difficulties</span>
-    <div class="collapsible-list">
+    <span class="editable-list-title">Difficulties</span>
+    <div class="editable-list">
         <button type="button">Add new</button>
         {% for difficulty in qitem.difficulties %}
-            {% include "anime/edit/difficulty.html" %}
+            {% include "difficulty/edit.html" %}
         {% endfor %}
     </div>
 
-    <span class="collapsible-list-title">Sources</span>
-    <div class="collapsible-list">
+    <span class="editable-list-title">Sources</span>
+    <div class="editable-list">
         <button type="button">Add new</button>
         {% for source in qitem.sources %}
-            {% include "anime/edit/source.html" %}
+            {% include "source/edit.html" %}
         {% endfor %}
     </div>
 </div>
