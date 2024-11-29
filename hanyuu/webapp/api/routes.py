@@ -92,7 +92,7 @@ async def read_anime(request: Request, session: SessionDep, mal_id: int) -> Any:
     )
 
 
-@router.delete("/anime")
+@router.delete("/animes/{mal_id}")
 async def delete_anime(session: SessionDep, mal_id: int) -> Any:
     anime = await session.get(Anime, mal_id)
     if anime is None:
@@ -160,10 +160,10 @@ class QItemSchema(BaseModel):
 
 
 @router.post("/qitems", response_class=HTMLResponse)
-async def create_qitem(request: Request, session: SessionDep, anime_id: int) -> Any:
-    anime = await session.get(Anime, anime_id)
+async def create_qitem(request: Request, session: SessionDep, parent_id: int) -> Any:
+    anime = await session.get(Anime, parent_id)
     if anime is None:
-        return no_such("anime", mal_id=anime_id)
+        return no_such("anime", mal_id=parent_id)
     qitems = await anime.awaitable_attrs.qitems
     # take minimal excluded opening number for new number
     numbers = sorted(
@@ -175,7 +175,7 @@ async def create_qitem(request: Request, session: SessionDep, anime_id: int) -> 
             number += 1
         else:
             break
-    qitem = QItem(anime_id=anime_id, category=Category.Opening, number=number)
+    qitem = QItem(anime_id=parent_id, category=Category.Opening, number=number)
     session.add(qitem)
     session.expire_on_commit = False
     await session.commit()

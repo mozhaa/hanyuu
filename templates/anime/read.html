@@ -1,5 +1,5 @@
 <html lang="en">
-<head>
+<head data-anime-id="{{ anime.mal_id }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script
@@ -22,8 +22,8 @@
             <h3 class="secondary-title">{{ anime.shiki_title_ru }}</h3>
         </div>
         <span class="editable-list-title">Quiz Items</span>
-        <div class="editable-list">
-            <button type="button" onclick="add_new(this)" data-action="/animes/{{ anime.mal_id }}/qitems">Add new</button>
+        <div class="editable-list" data-base-action="/qitems">
+            <button type="button" onclick="add_item(this)">Add new</button>
             {% for qitem in anime.qitems %}
                 {% include "qitem/edit.html" %}
             {% endfor %}

@@ -10,14 +10,14 @@
         <input type="text" name="path" value="{{ source.path }}">
         
         <button type="submit">O</button>
-        <button type="button">X</button>
+        <button type="button" onclick="delete_item(this)">X</button>
     </form>
     
     <span class="editable-list-title">Timings</span>
-    <div class="editable-list">
+    <div class="editable-list" data-base-action="/timings">
         <button type="button">Add new</button>
         {% for timing in source.timings %}
-        {% include "timing/edit.html" %}
+            {% include "timing/edit.html" %}
         {% endfor %}
     </div>
 </div>

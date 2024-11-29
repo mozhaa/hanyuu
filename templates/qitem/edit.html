@@ -1,9 +1,10 @@
-<div class="qitem" data-id="{{ qitem.id }}">
+<div class="editable-list-item qitem" data-id="{{ qitem.id }}">
     <form action="">
         <label for="category">Category</label>
         <select name="category">
-            <option value="Opening" {{ 'selected' if qitem.category.name == 'Opening' else '' }}>OP</option>
-            <option value="Ending" {{ 'selected' if qitem.category.name == 'Ending' else '' }}>ED</option>
+            {% for c in qitem.category.__class__ %}
+            <option value="{{ c.value }}" {{ 'selected' if qitem.category == c else '' }}>{{ c.name }}</option>
+            {% endfor %}
         </select>
 
         <label for="number">Number</label>
@@ -16,11 +17,11 @@
         <input type="text" name="song-artist" value="{{ qitem.song_artist }}">
 
         <button type="submit">O</button>
-        <button type="button">X</button>
+        <button type="button" onclick="delete_item(this)">X</button>
     </form>
 
     <span class="editable-list-title">Difficulties</span>
-    <div class="editable-list">
+    <div class="editable-list" data-base-action="/difficulties">
         <button type="button">Add new</button>
         {% for difficulty in qitem.difficulties %}
             {% include "difficulty/edit.html" %}
@@ -28,7 +29,7 @@
     </div>
 
     <span class="editable-list-title">Sources</span>
-    <div class="editable-list">
+    <div class="editable-list" data-base-action="/sources">
         <button type="button">Add new</button>
         {% for source in qitem.sources %}
             {% include "source/edit.html" %}
