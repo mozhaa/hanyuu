@@ -1,0 +1,23 @@
+<div class="source" data-id="{{ source.id }}">
+    <form action="">
+        <label for="platform">Platform</label>
+        <select name="platform">
+            <option value="youtube" {{ 'selected' if source.platform == 'youtube' else '' }}>YouTube</option>
+            <option value="torrent" {{ 'selected' if source.platform == 'torrent' else '' }}>Torrent</option>
+        </select>
+        
+        <label for="path">Path</label>
+        <input type="text" name="path" value="{{ source.path }}">
+        
+        <button type="submit">O</button>
+        <button type="button">X</button>
+    </form>
+    
+    <span class="collapsible-list-title">Timings</span>
+    <div class="collapsible-list">
+        <button type="button">Add new</button>
+        {% for timing in source.timings %}
+        {% include "anime/edit/timing.html" %}
+        {% endfor %}
+    </div>
+</div>

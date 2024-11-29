@@ -1,14 +1,15 @@
+import asyncio
 from typing import *
 
 from fastapi import APIRouter, Request
-import asyncio
-from fastapi.responses import HTMLResponse, JSONResponse, Response, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
-import hanyuu.webparse.shiki as shiki
 import hanyuu.webparse.anidb as anidb
+import hanyuu.webparse.shiki as shiki
 from hanyuu.config import getenv
 from hanyuu.database.models import *
 from hanyuu.webapp.deps import SessionDep
@@ -24,6 +25,18 @@ def redirect_to(from_url: str, to_name: str) -> None:
 
 
 redirect_to("/", "read_animes")
+
+
+def already_exists(name: str, **kwargs) -> Response:
+    return Response(
+        content=f"{name.capitalize()} with {kwargs} already exists", status_code=400
+    )
+
+
+def no_such(name: str, **kwargs) -> Response:
+    return Response(
+        content=f"{name.capitalize()} with {kwargs} does not exist", status_code=404
+    )
 
 
 @router.get("/animes", response_class=HTMLResponse)
@@ -93,12 +106,10 @@ async def delete_anime(session: SessionDep, mal_id: int) -> Any:
 @router.post("/anime", status_code=201)
 async def create_anime(session: SessionDep, mal_id: int) -> Any:
     if await session.get(Anime, mal_id) is not None:
-        return Response(
-            content=f"Anime with id={mal_id} already exists", status_code=400
-        )
+        return already_exists("anime", mal_id=mal_id)
     aod_anime = await session.get(AODAnime, mal_id)
     if aod_anime is None:
-        return Response(content=f"No such anime with id={mal_id}", status_code=400)
+        return no_such("aod_anime", mal_id=mal_id)
     anidb_page, shiki_anime = await asyncio.gather(
         anidb.Page.from_id(aod_anime.anidb_id), shiki.get_anime(mal_id)
     )
@@ -144,15 +155,15 @@ class QItemSchema(BaseModel):
     id: int
     category: Category
     number: int
-    song_name: Optional[str] = None
-    song_artist: Optional[str] = None
+    song_name: str
+    song_artist: str
 
 
-@router.post("/anime/{mal_id}/qitem", response_model=QItemSchema)
-async def create_qitem(session: SessionDep, mal_id: int) -> Any:
+@router.post("/anime/{mal_id}/qitems", response_class=HTMLResponse)
+async def create_qitem(request: Request, session: SessionDep, mal_id: int) -> Any:
     anime = await session.get(Anime, mal_id)
     if anime is None:
-        return Response(f"Anime with id={mal_id} does not exist", status_code=400)
+        return no_such("anime", mal_id=mal_id)
     qitems = await anime.awaitable_attrs.qitems
     # take minimal excluded opening number for new number
     numbers = sorted(
@@ -168,4 +179,32 @@ async def create_qitem(session: SessionDep, mal_id: int) -> Any:
     session.add(qitem)
     session.expire_on_commit = False
     await session.commit()
-    return qitem
+    sources = await qitem.awaitable_attrs.sources
+    for source in sources:
+        await source.awaitable_attrs.timings
+    await qitem.awaitable_attrs.difficulties
+    return templates.TemplateResponse(
+        request=request, name="anime/edit/qitem.html", context={"qitem": qitem}
+    )
+
+
+@router.post("/qitem")
+async def update_qitem(session: SessionDep, qitem: QItemSchema) -> Any:
+    existing_qitem = await session.get(QItem, qitem.id)
+    if existing_qitem is None:
+        return no_such("qitem", id=qitem.id)
+    for k, v in qitem.model_dump().items():
+        existing_qitem.__setattr__(k, v)
+    try:
+        await session.commit()
+    except IntegrityError as e:
+        return Response(e._message, status_code=400)
+
+
+@router.delete("/qitem/{qitem_id}")
+async def delete_qitem(session: SessionDep, qitem_id: int) -> Any:
+    qitem = await session.get(QItem, qitem_id)
+    if qitem is None:
+        return no_such("qitem", id=qitem_id)
+    await session.delete(qitem)
+    await session.commit()

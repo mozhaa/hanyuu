@@ -1,0 +1,37 @@
+<div class="qitem" data-id="{{ qitem.id }}">
+    <form action="">
+        <label for="category">Category</label>
+        <select name="category">
+            <option value="Opening" {{ 'selected' if qitem.category.name == 'Opening' else '' }}>OP</option>
+            <option value="Ending" {{ 'selected' if qitem.category.name == 'Ending' else '' }}>ED</option>
+        </select>
+
+        <label for="number">Number</label>
+        <input type="text" name="number" value="{{ qitem.number }}">
+        
+        <label for="song-name">Song name</label>
+        <input type="text" name="song-name" value="{{ qitem.song_name }}">
+
+        <label for="song-name">Song artist</label>
+        <input type="text" name="song-artist" value="{{ qitem.song_artist }}">
+
+        <button type="submit">O</button>
+        <button type="button">X</button>
+    </form>
+
+    <span class="collapsible-list-title">Difficulties</span>
+    <div class="collapsible-list">
+        <button type="button">Add new</button>
+        {% for difficulty in qitem.difficulties %}
+            {% include "anime/edit/difficulty.html" %}
+        {% endfor %}
+    </div>
+
+    <span class="collapsible-list-title">Sources</span>
+    <div class="collapsible-list">
+        <button type="button">Add new</button>
+        {% for source in qitem.sources %}
+            {% include "anime/edit/source.html" %}
+        {% endfor %}
+    </div>
+</div>

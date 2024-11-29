@@ -23,87 +23,9 @@
         </div>
         <span class="collapsible-list-title">Quiz Items</span>
         <div class="collapsible-list">
-            <button type="button">Add new</button>
+            <button type="button" onclick="add_new(this)" data-action="/anime/{{ anime.mal_id }}/qitems">Add new</button>
             {% for qitem in anime.qitems %}
-            <div class="qitem" data-id="{{ qitem.id }}">
-                <form action="">
-                    <label for="category">Category</label>
-                    <select name="category">
-                        <option value="Opening" {{ 'selected' if qitem.category.name == 'Opening' else '' }}>OP</option>
-                        <option value="Ending" {{ 'selected' if qitem.category.name == 'Ending' else '' }}>ED</option>
-                    </select>
-
-                    <label for="number">Number</label>
-                    <input type="text" name="number" value="{{ qitem.number }}">
-                    
-                    <label for="song-name">Song name</label>
-                    <input type="text" name="song-name" value="{{ qitem.song_name }}">
-
-                    <label for="song-name">Song artist</label>
-                    <input type="text" name="song-artist" value="{{ qitem.song_artist }}">
-
-                    <button type="submit">O</button>
-                    <button type="button">X</button>
-                </form>
-
-                <span class="collapsible-list-title">Difficulties</span>
-                <div class="collapsible-list">
-                    <button type="button">Add new</button>
-                    {% for difficulty in qitem.difficulties %}
-                    <div class="difficulty" data-id="{{ difficulty.id }}">
-                        <form action="">
-                            <label for="difficulty">Difficulty</label>
-                            <input type="range" name="difficulty" min="1" max="100" value="{{ difficulty.value }}">
-
-                            <button type="submit">O</button>
-                            <button type="button">X</button>
-                        </form>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <span class="collapsible-list-title">Sources</span>
-                <div class="collapsible-list">
-                    <button type="button">Add new</button>
-                    {% for source in qitem.sources %}
-                    <div class="source" data-id="{{ source.id }}">
-                        <form action="">
-                            <label for="platform">Platform</label>
-                            <select name="platform">
-                                <option value="youtube" {{ 'selected' if source.platform == 'youtube' else '' }}>YouTube</option>
-                                <option value="torrent" {{ 'selected' if source.platform == 'torrent' else '' }}>Torrent</option>
-                            </select>
-                            
-                            <label for="path">Path</label>
-                            <input type="text" name="path" value="{{ source.path }}">
-                            
-                            <button type="submit">O</button>
-                            <button type="button">X</button>
-                        </form>
-                        
-                        <span class="collapsible-list-title">Timings</span>
-                        <div class="collapsible-list">
-                            <button type="button">Add new</button>
-                            {% for timing in source.timings %}
-                            <div class="timing" data-id="{{ timing.id }}">
-                                <form action="">
-                                    <label for="guess-start">Guess start</label>
-                                    <input type="text" name="guess-start" value="{{ timing.guess_start }}">
-                                    
-                                    <label for="reveal-start">Reveal start</label>
-                                    <input type="text" name="reveal-start" value="{{ timing.reveal_start }}">
-                                    
-                                    <button type="submit">O</button>
-                                    <button type="button">X</button>
-                                </form>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
+                {% include "anime/edit/qitem.html" %}
             {% endfor %}
         </div>
     </div>
