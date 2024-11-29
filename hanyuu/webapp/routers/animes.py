@@ -15,7 +15,7 @@ from .utils import already_exists, no_such, templates
 router = APIRouter(prefix="/animes")
 
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("", response_class=HTMLResponse)
 async def read_animes(request: Request, session: SessionDep, page: int = 1) -> Any:
     page_size = 20
     result = await session.scalars(
@@ -52,7 +52,7 @@ async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
     )
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def create_anime(session: SessionDep, mal_id: int) -> Any:
     if await session.get(Anime, mal_id) is not None:
         return already_exists("anime", mal_id=mal_id)

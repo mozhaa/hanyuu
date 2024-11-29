@@ -46,7 +46,7 @@ class TimingSchema(BaseModel):
         return cls.str_to_time(s)
 
 
-@router.post("/", response_class=HTMLResponse)
+@router.post("", response_class=HTMLResponse)
 async def create_timing(
     request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int
 ) -> Any:
@@ -61,7 +61,7 @@ async def create_timing(
     )
 
 
-@router.put("/")
+@router.put("")
 async def update_timing(
     session: SessionDep, added_by: AddedByDep, timing: TimingSchema
 ) -> Any:

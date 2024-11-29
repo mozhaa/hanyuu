@@ -18,7 +18,7 @@ class SourceSchema(BaseModel):
     path: str
 
 
-@router.post("/", response_class=HTMLResponse)
+@router.post("", response_class=HTMLResponse)
 async def create_source(
     request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int
 ) -> Any:
@@ -36,7 +36,7 @@ async def create_source(
     )
 
 
-@router.put("/")
+@router.put("")
 async def update_source(
     session: SessionDep, added_by: AddedByDep, source: SourceSchema
 ) -> Any:

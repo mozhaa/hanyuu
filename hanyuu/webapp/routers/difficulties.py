@@ -17,7 +17,7 @@ class DifficultySchema(BaseModel):
     value: int = Field(ge=1, le=100)
 
 
-@router.post("/", response_class=HTMLResponse)
+@router.post("", response_class=HTMLResponse)
 async def create_difficulty(
     request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int
 ) -> Any:
@@ -32,7 +32,7 @@ async def create_difficulty(
     )
 
 
-@router.put("/")
+@router.put("")
 async def update_difficulty(
     session: SessionDep, added_by: AddedByDep, difficulty: DifficultySchema
 ) -> Any:

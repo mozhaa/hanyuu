@@ -1,9 +1,8 @@
 from typing import *
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from sqlalchemy.exc import IntegrityError
 
 from hanyuu.database.models import Anime, Category, QItem
 from hanyuu.webapp.deps import SessionDep
@@ -21,7 +20,7 @@ class QItemSchema(BaseModel):
     song_artist: str
 
 
-@router.post("/", response_class=HTMLResponse)
+@router.post("", response_class=HTMLResponse)
 async def create_qitem(request: Request, session: SessionDep, parent_id: int) -> Any:
     anime = await session.get(Anime, parent_id)
     if anime is None:
@@ -50,7 +49,7 @@ async def create_qitem(request: Request, session: SessionDep, parent_id: int) ->
     )
 
 
-@router.put("/")
+@router.put("")
 async def update_qitem(session: SessionDep, qitem: QItemSchema) -> Any:
     return await update_model(session, None, QItem, qitem)
 
