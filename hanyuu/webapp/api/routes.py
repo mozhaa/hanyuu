@@ -5,11 +5,12 @@ import asyncio
 from fastapi.responses import HTMLResponse, JSONResponse, Response, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
+from pydantic import BaseModel
 
 import hanyuu.webparse.shiki as shiki
 import hanyuu.webparse.anidb as anidb
 from hanyuu.config import getenv
-from hanyuu.database.models import Anime, AODAnime
+from hanyuu.database.models import *
 from hanyuu.webapp.deps import SessionDep
 
 router = APIRouter()
@@ -137,3 +138,34 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
     )
     session.add(result)
     await session.commit()
+
+
+class QItemSchema(BaseModel):
+    id: int
+    category: Category
+    number: int
+    song_name: Optional[str] = None
+    song_artist: Optional[str] = None
+
+
+@router.post("/anime/{mal_id}/qitem", response_model=QItemSchema)
+async def create_qitem(session: SessionDep, mal_id: int) -> Any:
+    anime = await session.get(Anime, mal_id)
+    if anime is None:
+        return Response(f"Anime with id={mal_id} does not exist", status_code=400)
+    qitems = await anime.awaitable_attrs.qitems
+    # take minimal excluded opening number for new number
+    numbers = sorted(
+        [qitem.number for qitem in qitems if qitem.category == Category.Opening]
+    )
+    number = 1
+    for existing_number in numbers:
+        if number == existing_number:
+            number += 1
+        else:
+            break
+    qitem = QItem(anime_id=mal_id, category=Category.Opening, number=number)
+    session.add(qitem)
+    session.expire_on_commit = False
+    await session.commit()
+    return qitem
