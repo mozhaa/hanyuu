@@ -67,3 +67,16 @@ function serialize_form(form) {
     });
     return JSON.stringify(values);
 }
+
+function delete_anime() {
+    let anime_id = $("head").data("anime-id");
+    fetch(`/animes/${anime_id}`, {
+        method: "DELETE",
+    }).then((response) => {
+        if (response.ok) window.location = "/";
+        else
+            response.text().then((text) => {
+                alert(text);
+            });
+    });
+}
