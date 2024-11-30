@@ -162,6 +162,9 @@
 
         & input,
         & select {
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
             border: 0;
             outline: 0;
         }
@@ -174,4 +177,42 @@
     & section:has(button) {
         justify-content: center;
     }
+}
+
+form.unsaved .save-button {
+    filter: contrast(2);
+}
+
+.editable-list-item {
+    position: relative;
+}
+
+.editable-list-item:has(> form.unsaved)::before {
+    content: "";
+    width: .6rem;
+    border-radius: 50%;
+    aspect-ratio: 1 / 1;
+    background-color: red;
+    font-style: italic;
+    opacity: 0.3;
+    position: absolute;
+    inset: 8px 0 0 8px;
+}
+
+form.alias {
+    position: relative;
+}
+
+form.unsaved.alias::before {
+    content: "";
+    width: .6rem;
+    border-radius: 50%;
+    aspect-ratio: 1 / 1;
+    background-color: red;
+    font-style: italic;
+    opacity: 0.3;
+    position: absolute;
+    left: -1em;
+    top: 50%;
+    transform: translateY(-50%);
 }

@@ -24,12 +24,16 @@
                 <div class="search-result {{ 'added' if anime.added else '' }}" data-mal-id="{{ anime.id }}">
                     <img loading="lazy" src="{{ anime.poster.originalUrl }}" alt="poster" class="poster">
                     
-                    <span class="main-title">{{ anime.name }}</span>
-                    <span class="secondary-title">{{ anime.russian }}</span>
-
-                    <a onclick="create_anime(this)" class="darken-hover add-button">Add</a>
-                    <a href="/animes/{{ anime.id }}" class="darken-hover goto-button">Go to page</a>
-                    <a href="{{ anime.url }}" class="darken-hover link-button">Shiki</a>
+                    <section>
+                        <span class="main-title">{{ anime.name }}</span>
+                        <span class="secondary-title">{{ anime.russian }}</span>
+    
+                        <div class="buttons">
+                            <a onclick="create_anime(this)" class="button button-pri-solid add-button">Add</a>
+                            <a href="/animes/{{ anime.id }}" class="button button-pri-hollow goto-button">Go to page</a>
+                            <a href="{{ anime.url }}" class="button button-sec-solid link-button">Shiki</a>
+                        </div>
+                    </section>
                 </div>
             {% endfor %}
         </div>

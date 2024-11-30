@@ -1,5 +1,5 @@
 function create_anime(el) {
-    let card = $(el).parent();
+    let card = $(el).closest(".search-result");
     let mal_id = card.data("mal-id");
     fetch(`/animes?mal_id=${mal_id}`, {
         method: "POST",

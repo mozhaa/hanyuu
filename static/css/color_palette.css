@@ -2,8 +2,8 @@ html {
     --color-white: #ffffff;
     --color-black: #000000;
 
-    --color-sec: #4B3F72;
     --color-pri: #FFC857;
+    --color-sec: #4B3F72;
 
     --color-pri-0: hsl(from var(--color-pri) h s 0%);
     --color-pri-1: hsl(from var(--color-pri) h s 10%);

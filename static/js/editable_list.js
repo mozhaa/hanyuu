@@ -7,16 +7,18 @@ function add_item(el) {
     fetch(action, {
         method: "POST",
     }).then((response) => {
-        if (response.ok)
+        if (response.ok) {
             response.text().then((text) => {
                 let new_item = $(text);
                 list.append(new_item);
+                bind_inputs();
                 $("body, html").animate({ scrollTop: new_item.offset().top }, 500);
             });
-        else
+        } else {
             response.text().then((text) => {
                 alert(text);
             });
+        }
     });
 }
 
@@ -46,8 +48,10 @@ function update_item(el) {
             "content-type": "application/json",
         },
     }).then((response) => {
-        if (response.ok) console.log("Successfully updated");
-        else
+        if (response.ok) { 
+            console.log("Successfully updated"); 
+            $(el).closest("form").removeClass("unsaved");
+        } else
             response.text().then((text) => {
                 alert(text);
             });
@@ -87,7 +91,10 @@ function update_alias(el) {
             "content-type": "application/json",
         },
     }).then((response) => {
-        if (response.ok) console.log("Successfully updated");
+        if (response.ok) { 
+            console.log("Successfully updated"); 
+            $(el).closest("form").removeClass("unsaved");
+        }
         else
             response.text().then((text) => {
                 alert(text);
@@ -114,3 +121,13 @@ function enforceMinMax(el) {
         }
     }
 }
+
+function bind_inputs() {
+    $(":input").each(function() {
+        $(this).change(function() {
+            $(this).closest("form").addClass("unsaved");
+        })
+    })
+}
+
+$(bind_inputs)

@@ -48,14 +48,16 @@ a.button,
 }
 
 button,
-a.button {
+.button {
+    box-sizing: border-box;
     text-decoration: none;
     user-select: none;
     
     border: 1px solid transparent;
     border-radius: 50vh;
     padding: .6em .8em;
-    max-width: max-content;
+    min-width: max-content;
+    text-align: center;
     cursor: pointer;
 
     font-family: inherit;
@@ -85,13 +87,13 @@ input[type="number"] {
 
 .button-pri-hollow {
     background-color: var(--color-white);
-    border-color: var(--color-pri-5);
+    border: 1px solid var(--color-pri-5);
     box-shadow: 0 0 2px var(--color-pri-5);
     color: var(--color-pri-5);
 }
 
 .button-sec-hollow {
     background-color: var(--color-white);
-    border-color: var(--color-sec-5);
+    border: 1px solid var(--color-sec-5);
     color: var(--color-sec-5);
 }
