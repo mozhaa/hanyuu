@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, field_validator
 
-from hanyuu.database.models import QItem, QItemSourceTiming
+from hanyuu.database.models import QItemSourceTiming, QItemSource
 from hanyuu.webapp.deps import AddedByDep, SessionDep
 
 from .utils import no_such, templates, update_model
@@ -50,10 +50,10 @@ class TimingSchema(BaseModel):
 async def create_timing(
     request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int
 ) -> Any:
-    qitem = await session.get(QItem, parent_id)
-    if qitem is None:
-        return no_such("qitem", id=parent_id)
-    timing = QItemSourceTiming(qitem_source_id=qitem.id, added_by=added_by)
+    source = await session.get(QItemSource, parent_id)
+    if source is None:
+        return no_such("source", id=parent_id)
+    timing = QItemSourceTiming(qitem_source_id=parent_id, added_by=added_by)
     session.add(timing)
     await session.commit()
     return templates.TemplateResponse(

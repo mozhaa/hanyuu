@@ -48,4 +48,4 @@ async def update_model(
     try:
         await session.commit()
     except IntegrityError as e:
-        return Response(e._message, status_code=400)
+        return Response(content=e._message(), status_code=400)

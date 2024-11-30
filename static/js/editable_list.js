@@ -38,9 +38,7 @@ function delete_item(el) {
 
 function update_item(el) {
     let list = $(el).closest(".editable-list");
-    let item = $(el).closest(".editable-list-item");
     let base_action = list.data("base-action");
-    console.log(base_action);
     fetch(base_action, {
         method: "PUT",
         body: serialize_form($(el).closest("form")),
@@ -79,4 +77,40 @@ function delete_anime() {
                 alert(text);
             });
     });
+}
+
+function update_alias(el) {
+    fetch("/animes", {
+        method: "PUT",
+        body: serialize_form($(el).closest("form")),
+        headers: {
+            "content-type": "application/json",
+        },
+    }).then((response) => {
+        if (response.ok) console.log("Successfully updated");
+        else
+            response.text().then((text) => {
+                alert(text);
+            });
+    });
+}
+
+function update_range(num_id, rng_id) {
+    $(`#${rng_id}`).val($(`#${num_id}`).val());
+}
+
+function update_number(rng_id, num_id) {
+    $(`#${num_id}`).val($(`#${rng_id}`).val());
+}
+
+function enforceMinMax(el) {
+    // https://stackoverflow.com/a/59291891
+    if (el.value != "") {
+        if (parseInt(el.value) < parseInt(el.min)) {
+            el.value = el.min;
+        }
+        if (parseInt(el.value) > parseInt(el.max)) {
+            el.value = el.max;
+        }
+    }
 }

@@ -1,0 +1,31 @@
+html {
+    --color-white: #ffffff;
+    --color-black: #000000;
+
+    --color-sec: #4B3F72;
+    --color-pri: #FFC857;
+
+    --color-pri-0: hsl(from var(--color-pri) h s 0%);
+    --color-pri-1: hsl(from var(--color-pri) h s 10%);
+    --color-pri-2: hsl(from var(--color-pri) h s 20%);
+    --color-pri-3: hsl(from var(--color-pri) h s 30%);
+    --color-pri-4: hsl(from var(--color-pri) h s 40%);
+    --color-pri-5: hsl(from var(--color-pri) h s 50%);
+    --color-pri-6: hsl(from var(--color-pri) h s 60%);
+    --color-pri-7: hsl(from var(--color-pri) h s 70%);
+    --color-pri-8: hsl(from var(--color-pri) h s 80%);
+    --color-pri-9: hsl(from var(--color-pri) h s 90%);
+    --color-pri-10: hsl(from var(--color-pri) h s 100%);
+
+    --color-sec-0: hsl(from var(--color-sec) h s 0%);
+    --color-sec-1: hsl(from var(--color-sec) h s 10%);
+    --color-sec-2: hsl(from var(--color-sec) h s 20%);
+    --color-sec-3: hsl(from var(--color-sec) h s 30%);
+    --color-sec-4: hsl(from var(--color-sec) h s 40%);
+    --color-sec-5: hsl(from var(--color-sec) h s 50%);
+    --color-sec-6: hsl(from var(--color-sec) h s 60%);
+    --color-sec-7: hsl(from var(--color-sec) h s 70%);
+    --color-sec-8: hsl(from var(--color-sec) h s 80%);
+    --color-sec-9: hsl(from var(--color-sec) h s 90%);
+    --color-sec-10: hsl(from var(--color-sec) h s 100%);
+}

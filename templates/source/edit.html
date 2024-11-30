@@ -1,22 +1,28 @@
-<div class="editable-list-item source" data-id="{{ source.id }}">
+<div class="editable-list-item" data-id="{{ source.id }}">
     <form>
         <input type="number" name="id" value="{{ source.id }}" style="display: none" readonly>
 
-        <label for="platform">Platform</label>
-        <select name="platform">
-            <option value="youtube" {{ 'selected' if source.platform == 'youtube' else '' }}>YouTube</option>
-            <option value="torrent" {{ 'selected' if source.platform == 'torrent' else '' }}>Torrent</option>
-        </select>
+        <section>
+            <label for="platform">Platform</label>
+            <select name="platform">
+                <option value="youtube" {{ 'selected' if source.platform == 'youtube' else '' }}>YouTube</option>
+                <option value="torrent" {{ 'selected' if source.platform == 'torrent' else '' }}>Torrent</option>
+            </select>
+        </section>
         
-        <label for="path">Path</label>
-        <input type="text" name="path" value="{{ source.path }}">
+        <section>
+            <label for="path">Path</label>
+            <input type="text" name="path" value="{{ source.path }}">
+        </section>
         
-        <button type="button" onclick="update_item(this)">O</button>
-        <button type="button" onclick="delete_item(this)">X</button>
+        <section>
+            <button class="save-button" type="button" onclick="update_item(this)">Save</button>
+            <button class="delete-button" type="button" onclick="delete_item(this)">Delete</button>
+        </section>
     </form>
     
-    <span class="editable-list-title">Timings</span>
-    <div class="editable-list" data-base-action="/timings">
+    <div class="editable-list timings-list" data-base-action="/timings">
+        <span class="editable-list-title">Timings</span>
         <button type="button" onclick="add_item(this)">Add new</button>
         {% for timing in source.timings %}
             {% include "timing/edit.html" %}

@@ -56,6 +56,7 @@ class Anime(Base):
 
     mal_id: Mapped[int] = mapped_column(primary_key=True)
     anidb_id: Mapped[int] = mapped_column(nullable=False, unique=True, index=True)
+    alias: Mapped[str] = mapped_column(nullable=True)
 
     shiki_title_ro: Mapped[str] = mapped_column(nullable=False)
     shiki_title_ru: Mapped[str] = mapped_column(nullable=True)

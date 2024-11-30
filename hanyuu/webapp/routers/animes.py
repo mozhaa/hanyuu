@@ -4,6 +4,7 @@ from typing import *
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from sqlalchemy import select
+from pydantic import BaseModel
 
 import hanyuu.webparse.anidb as anidb
 import hanyuu.webparse.shiki as shiki
@@ -126,4 +127,22 @@ async def delete_anime(session: SessionDep, mal_id: int) -> Any:
             content=f"Anime with id={mal_id} does not exist", status_code=400
         )
     await session.delete(anime)
+    await session.commit()
+
+
+class AnimeAliasScheme(BaseModel):
+    id: int
+    alias: str
+
+
+@router.put("")
+async def update_alias(session: SessionDep, obj: AnimeAliasScheme) -> Any:
+    anime = await session.get(Anime, obj.id)
+    if anime is None:
+        return Response(
+            content=f"Anime with id={obj.id} does not exist", status_code=400
+        )
+    if len(obj.alias) == 0:
+        obj.alias = None
+    anime.alias = obj.alias
     await session.commit()

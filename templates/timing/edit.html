@@ -1,14 +1,20 @@
-<div class="editable-list-item timing" data-id="{{ timing.id }}">
+<div class="editable-list-item" data-id="{{ timing.id }}">
     <form>
         <input type="number" name="id" value="{{ timing.id }}" style="display: none" readonly>
 
-        <label for="guess_start">Guess start</label>
-        <input type="text" name="guess_start" value="{{ timing.guess_start }}">
+        <section>
+            <label for="guess_start">Guess start</label>
+            <input type="text" name="guess_start" value="{{ timing.guess_start }}">
+        </section>
         
-        <label for="reveal_ start">Reveal start</label>
-        <input type="text" name="reveal_start" value="{{ timing.reveal_start }}">
+        <section>
+            <label for="reveal_ start">Reveal start</label>
+            <input type="text" name="reveal_start" value="{{ timing.reveal_start }}">
+        </section>
         
-        <button type="button" onclick="update_item(this)">O</button>
-        <button type="button" onclick="delete_item(this)">X</button>
+        <section>
+            <button class="save-button" type="button" onclick="update_item(this)">Save</button>
+            <button class="delete-button" type="button" onclick="delete_item(this)">Delete</button>
+        </section>
     </form>
 </div>

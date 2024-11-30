@@ -11,19 +11,18 @@
 }
 
 .anime-card {
-    border: 1px solid transparent;
+    border: 3px solid transparent;
     border-radius: 5px;
+
     cursor: pointer;
     padding: .5em 1em 0 1em;
     max-width: 100%;
     overflow: hidden;
     text-decoration: none;
-    color: black;
+    color: var(--color-black);
 
     &:hover {
-        border-color: #9365b9;
-        box-shadow: 0 0 3px #9365b9;
-        color: #753ca3;
+        border-color: var(--color-pri-8);
     }
 
     &>img {

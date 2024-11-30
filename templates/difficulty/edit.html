@@ -1,11 +1,13 @@
-<div class="editable-list-item difficulty" data-id="{{ difficulty.id }}">
+<div class="editable-list-item" data-id="{{ difficulty.id }}">
     <form>
         <input type="number" name="id" value="{{ difficulty.id }}" style="display: none" readonly>
 
         <label for="value">Difficulty</label>
-        <input type="range" name="value" min="1" max="100" value="{{ difficulty.value }}">
+        <input type="range" name="value" min="1" max="100" id="d-rng-{{ difficulty.id }}" 
+        onchange="update_number('d-rng-{{ difficulty.id }}', 'd-num-{{ difficulty.id }}')" value="{{ difficulty.value }}">
+        <input type="number" onkeyup="enforceMinMax(this); update_range('d-num-{{ difficulty.id }}', 'd-rng-{{ difficulty.id }}')" min="1" max="100" id="d-num-{{ difficulty.id }}" value="{{ difficulty.value }}">
 
-        <button type="button" onclick="update_item(this)">O</button>
-        <button type="button" onclick="delete_item(this)">X</button>
+        <button class="save-button" type="button" onclick="update_item(this)">Save</button>
+        <button class="delete-button" type="button" onclick="delete_item(this)">Delete</button>
     </form>
 </div>

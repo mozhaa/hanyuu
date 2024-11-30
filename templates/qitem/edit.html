@@ -1,37 +1,42 @@
-<div class="editable-list-item qitem" data-id="{{ qitem.id }}">
+<div class="editable-list-item" data-id="{{ qitem.id }}">
     <form>
         <input type="number" name="id" value="{{ qitem.id }}" style="display: none" readonly>
 
-        <label for="category">Category</label>
-        <select type="number" name="category">
-            {% for c in qitem.category.__class__ %}
-            <option value="{{ c.value }}" {{ 'selected' if qitem.category == c else '' }}>{{ c.name }}</option>
-            {% endfor %}
-        </select>
+        <div class="header">
+            <select type="number" name="category">
+                {% for c in qitem.category.__class__ %}
+                <option value="{{ c.value }}" {{ 'selected' if qitem.category == c else '' }}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" min="1" name="number" value="{{ qitem.number }}">
+        </div>
 
-        <label for="number">Number</label>
-        <input type="number" min="1" name="number" value="{{ qitem.number }}">
-
-        <label for="song_artist">Song artist</label>
-        <input type="text" name="song_artist" value="{{ qitem.song_artist }}">
+        <div class="song-input">
+            <label for="song_artist">Artist</label>
+            <input type="text" name="song_artist" value="{{ qitem.song_artist }}">
+        </div>
         
-        <label for="song_name">Song name</label>
-        <input type="text" name="song_name" value="{{ qitem.song_name }}">
+        <div class="song-input">
+            <label for="song_name">Name</label>
+            <input type="text" name="song_name" value="{{ qitem.song_name }}">
+        </div>
 
-        <button type="button" onclick="update_item(this)">O</button>
-        <button type="button" onclick="delete_item(this)">X</button>
+        <div class="buttons">
+            <button class="save-button" type="button" onclick="update_item(this)">Save</button>
+            <button class="delete-button" type="button" onclick="delete_item(this)">Delete</button>
+        </div>
     </form>
 
-    <span class="editable-list-title">Difficulties</span>
-    <div class="editable-list" data-base-action="/difficulties">
+    <div class="editable-list difficulties-list" data-base-action="/difficulties">
+        <span class="editable-list-title">Difficulties</span>
         <button type="button" onclick="add_item(this)">Add new</button>
         {% for difficulty in qitem.difficulties %}
             {% include "difficulty/edit.html" %}
         {% endfor %}
     </div>
 
-    <span class="editable-list-title">Sources</span>
-    <div class="editable-list" data-base-action="/sources">
+    <div class="editable-list sources-list" data-base-action="/sources">
+        <span class="editable-list-title">Sources</span>
         <button type="button" onclick="add_item(this)">Add new</button>
         {% for source in qitem.sources %}
             {% include "source/edit.html" %}

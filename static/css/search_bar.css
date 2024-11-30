@@ -1,16 +1,16 @@
 .search-form {
     display: grid;
     grid-template-columns: 1fr min-content;
-    gap: 2px;
 
-    --main-color: #C9ADFF;
+    --main-color: var(--color-pri-6);
 
     & input.search-bar {
         width: 100%;
         font-size: 1.2em;
         padding: .4em;
         border: 1px solid gray;
-        border-radius: 5px;
+        border-right: 0;
+        border-radius: 5px 0 0 5px;
     
     
         &:focus {
@@ -24,9 +24,9 @@
         padding: 0 1em;
         height: 100%;
         border: 0;
-        border-radius: 5px;
+        border-radius: 0 5px 5px 0;
         background-color: var(--main-color);
-        color: white;
+        color: var(--color-white);
 
         & > img {
             height: 2em;

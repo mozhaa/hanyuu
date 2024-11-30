@@ -1,34 +1,177 @@
-.editable-list {
-    --item-color: #d4eaf2;
-    
-    & .editable-list {
-        --item-color: #d6f2d4;
+.qitems-list {
+    --background: var(--color-sec-8);
+    --add-button: var(--color-sec-8);
+    --buttons: var(--color-sec-5);
+}
 
-        & .editable-list {
-            --item-color: #f2e2d4;   
+.difficulties-list {
+    --background: var(--color-pri-8);
+    --add-button: var(--color-pri-8);
+    --buttons: var(--color-pri-5);
+}
+
+.sources-list {
+    --background: var(--color-pri-8);
+    --add-button: var(--color-pri-8);
+    --buttons: var(--color-pri-5);
+}
+
+.timings-list {
+    --background: color-mix(in srgb, var(--color-white), var(--color-black) 30%);
+    --add-button: color-mix(in srgb, var(--color-white), var(--color-black) 20%);
+    --buttons: color-mix(in srgb, var(--color-white), var(--color-black) 50%);
+}
+
+.editable-list {
+    border-radius: 10px;
+    background-color: var(--color-white);
+    border: 3px solid var(--background);
+    padding: .2em 1em .5em 1em;
+    margin-top: 1em;
+
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+
+    & .editable-list-title {
+        font-size: 1.2em;
+        color: color-mix(in srgb, var(--background), #000 20%);
+        display: block;
+        max-width: max-content;
+        margin: 0 auto;
+    }
+
+    & button {
+        background-color: var(--buttons);
+        color: var(--color-white);
+
+        &.add-button {
+            background-color: var(--add-button);
+            color: var(--color-black);
         }
     }
 }
 
-.editable-list {
-    border-radius: 4px;
-    background-color: white;
-    padding: .5em 0 .5em 2em;
-    
-    & > * {
-        border-radius: 4px;
-        background-color: var(--item-color);
-        padding: 1em;
+.editable-list-item {
+    border-radius: 10px;
+    background-color: var(--background);
+    padding: 1em;
+}
 
-        margin-top: 1em;
+.editable-list-item .editable-list-title {
+    font-size: 1em;
+}
+
+.qitems-list > .editable-list-item > form {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+
+    & .header {
+        display: flex;
+        justify-content: center;
+
+        & > * {
+            border: 0;
+            outline: 0;
+            color: var(--color-black);
+            background-color: transparent;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 5px #00000022;
+        }
     }
 
-    & > *:first-child {
-        margin-top: 0;
+    & .song-input {
+        display: flex;
+        
+        & label {
+            width: 10%;
+            padding-left: .5em;
+            flex-shrink: 0;
+        }
+
+        & input {
+            border-radius: 2px;
+            border: 0;
+            outline: 0;
+            background-color: rgb(100% 100% 100% / 0.5);
+            padding: 0;
+            padding-left: .5em;
+            margin-right: .5em;
+            font-size: inherit;
+            font-weight: inherit;
+            font-family: inherit;
+            width: 100%;
+        }
+    }
+
+    & .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1em;
     }
 }
 
-.editable-list-title {
-    display: block;
-    margin-top: 1em;
+.difficulties-list > .editable-list-item > form {
+    display: flex;
+    gap: .5em;
+
+    & > label {
+        line-height: 2em;
+    }
+
+    & > input[type="range"] {
+        width: 100%;
+    }
+
+    & > input[type="number"] {
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: inherit;
+        border: 0;
+        outline: 0;
+        border-radius: 10px;
+
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        & {
+            -moz-appearance: textfield;
+        }
+    }
+}
+
+:is(.timings-list, .sources-list) > .editable-list-item > form {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+
+    & section {
+        display: flex;
+        gap: 1em;
+
+        & label {
+            min-width: 20%;
+        }
+
+        & input,
+        & select {
+            border: 0;
+            outline: 0;
+        }
+
+        & input[type="text"] {
+            width: 100%;
+        }
+    }
+
+    & section:has(button) {
+        justify-content: center;
+    }
 }
