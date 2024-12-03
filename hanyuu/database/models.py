@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime, time
-from typing import List
+from typing import List, Optional
 
 import sqlalchemy.types as types
 from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint, func
@@ -19,9 +19,13 @@ def keyvalgen(obj):
 
 class Base(AsyncAttrs, DeclarativeBase):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), onupdate=func.now()
-    )
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    type_annotation_map = {
+        datetime: types.TIMESTAMP(timezone=True),
+        List[str]: postgresql.ARRAY(String, dimensions=1, zero_indexes=True),
+        List[List[str]]: postgresql.ARRAY(String, dimensions=2, zero_indexes=True),
+    }
 
     def __repr__(self):
         params = ", ".join(f"{k}={v}" for k, v in keyvalgen(self))
@@ -43,12 +47,7 @@ class IncompleteDate(types.TypeDecorator):
         return ",".join(map(str, [value[key] or "" for key in IncompleteDate.keys]))
 
     def process_result_value(self, value, dialect):
-        return dict(
-            zip(
-                IncompleteDate.keys,
-                [int(x) if x != "" else None for x in value.split(",")],
-            )
-        )
+        return dict(zip(IncompleteDate.keys, [int(x) if x != "" else None for x in value.split(",")]))
 
 
 class Anime(Base):
@@ -56,45 +55,33 @@ class Anime(Base):
 
     mal_id: Mapped[int] = mapped_column(primary_key=True)
     anidb_id: Mapped[int] = mapped_column(nullable=False, unique=True, index=True)
-    alias: Mapped[str] = mapped_column(nullable=True)
+    alias: Mapped[Optional[str]]
 
-    shiki_title_ro: Mapped[str] = mapped_column(nullable=False)
-    shiki_title_ru: Mapped[str] = mapped_column(nullable=True)
-    shiki_title_en: Mapped[str] = mapped_column(nullable=True)
-    shiki_title_jp: Mapped[str] = mapped_column(nullable=True)
-    shiki_url: Mapped[str] = mapped_column(nullable=False)
-    shiki_status: Mapped[str] = mapped_column(nullable=True)
-    shiki_poster_url: Mapped[str] = mapped_column(nullable=False)
-    shiki_poster_thumb_url: Mapped[str] = mapped_column(nullable=False)
-    shiki_episodes: Mapped[int] = mapped_column(nullable=False)
-    shiki_duration: Mapped[int] = mapped_column(nullable=True)
-    shiki_rating: Mapped[float] = mapped_column(nullable=True)
+    shiki_title_ro: Mapped[str]
+    shiki_title_ru: Mapped[Optional[str]]
+    shiki_title_en: Mapped[Optional[str]]
+    shiki_title_jp: Mapped[Optional[str]]
+    shiki_url: Mapped[str]
+    shiki_status: Mapped[Optional[str]]
+    shiki_poster_url: Mapped[str]
+    shiki_poster_thumb_url: Mapped[str]
+    shiki_episodes: Mapped[int]
+    shiki_duration: Mapped[Optional[int]]
+    shiki_rating: Mapped[Optional[float]]
     shiki_ratings_count: Mapped[int] = mapped_column(default=0)
     shiki_planned: Mapped[int] = mapped_column(default=0)
     shiki_completed: Mapped[int] = mapped_column(default=0)
     shiki_watching: Mapped[int] = mapped_column(default=0)
     shiki_dropped: Mapped[int] = mapped_column(default=0)
     shiki_on_hold: Mapped[int] = mapped_column(default=0)
-    shiki_age_rating: Mapped[str] = mapped_column(nullable=True)
-    shiki_aired_on: Mapped[IncompleteDate] = mapped_column(
-        IncompleteDate, nullable=True
-    )
-    shiki_released_on: Mapped[IncompleteDate] = mapped_column(
-        IncompleteDate, nullable=True
-    )
-    shiki_videos: Mapped[List[List[str]]] = mapped_column(
-        postgresql.ARRAY(String, dimensions=2, zero_indexes=True), nullable=False
-    )
-    shiki_synonyms: Mapped[List[str]] = mapped_column(
-        postgresql.ARRAY(String, dimensions=1, zero_indexes=True), nullable=False
-    )
-    shiki_genres: Mapped[List[str]] = mapped_column(
-        postgresql.ARRAY(String, dimensions=1, zero_indexes=True), nullable=False
-    )
+    shiki_age_rating: Mapped[Optional[str]]
+    shiki_aired_on: Mapped[Optional[IncompleteDate]]
+    shiki_released_on: Mapped[Optional[IncompleteDate]]
+    shiki_videos: Mapped[List[List[str]]]
+    shiki_synonyms: Mapped[List[str]]
+    shiki_genres: Mapped[List[str]]
 
-    qitems: Mapped[List["QItem"]] = relationship(
-        back_populates="anime", cascade="all, delete"
-    )
+    qitems: Mapped[List["QItem"]] = relationship(back_populates="anime", cascade="all, delete")
 
 
 class Category(enum.Enum):
@@ -106,8 +93,8 @@ class QItem(BaseWithID):
     __tablename__ = "qitem"
 
     anime_id: Mapped[int] = mapped_column(ForeignKey("anime.mal_id"))
-    category: Mapped[Category] = mapped_column(types.Enum(Category), nullable=False)
-    number: Mapped[int] = mapped_column(nullable=False)
+    category: Mapped[Category] = mapped_column(types.Enum(Category))
+    number: Mapped[int]
     song_artist: Mapped[str] = mapped_column(default="")
     song_name: Mapped[str] = mapped_column(default="")
 
@@ -115,19 +102,18 @@ class QItem(BaseWithID):
     sources: Mapped[List["QItemSource"]] = relationship(cascade="all, delete")
     difficulties: Mapped[List["QItemDifficulty"]] = relationship(cascade="all, delete")
 
-    __table_args__ = (
-        UniqueConstraint("anime_id", "category", "number", name="_category_number_uc"),
-    )
+    __table_args__ = (UniqueConstraint("anime_id", "category", "number", name="_category_number_uc"),)
 
 
 class QItemSource(BaseWithID):
     __tablename__ = "qitem_source"
 
     qitem_id: Mapped[int] = mapped_column(ForeignKey("qitem.id"))
-    platform: Mapped[str] = mapped_column(nullable=False)
-    path: Mapped[str] = mapped_column(nullable=False)
-    added_by: Mapped[str] = mapped_column(nullable=False)
-    verified: Mapped[bool] = mapped_column(default=False)
+    platform: Mapped[str]
+    path: Mapped[str]
+    added_by: Mapped[str]
+    verified: Mapped[bool]
+    local_fp: Mapped[Optional[str]]
 
     qitem: Mapped["QItem"] = relationship(back_populates="sources")
     timings: Mapped[List["QItemSourceTiming"]] = relationship(cascade="all, delete")
@@ -139,7 +125,7 @@ class QItemSourceTiming(BaseWithID):
     qitem_source_id: Mapped[int] = mapped_column(ForeignKey("qitem_source.id"))
     guess_start: Mapped[time] = mapped_column(default=time.min)
     reveal_start: Mapped[time] = mapped_column(default=time.min)
-    added_by: Mapped[str] = mapped_column(nullable=False)
+    added_by: Mapped[str]
 
     qitem_source: Mapped["QItemSource"] = relationship(back_populates="timings")
 
@@ -148,14 +134,12 @@ class QItemDifficulty(BaseWithID):
     __tablename__ = "qitem_difficulty"
 
     qitem_id: Mapped[int] = mapped_column(ForeignKey("qitem.id"))
-    value: Mapped[int] = mapped_column(nullable=False)
-    added_by: Mapped[str] = mapped_column(nullable=False)
+    value: Mapped[int]
+    added_by: Mapped[str]
 
     qitem: Mapped["QItem"] = relationship(back_populates="difficulties")
 
-    __table_args__ = (
-        CheckConstraint("value >= 0 AND value <= 100", name="_value_range"),
-    )
+    __table_args__ = (CheckConstraint("value >= 0 AND value <= 100", name="_value_range"),)
 
 
 class AnimeType(enum.Enum):
@@ -187,26 +171,18 @@ class AODAnime(Base):
 
     mal_id: Mapped[int] = mapped_column(primary_key=True)
     anidb_id: Mapped[int] = mapped_column(nullable=False, unique=True, index=True)
-    sources: Mapped[List[str]] = mapped_column(
-        postgresql.ARRAY(String, dimensions=1, zero_indexes=True), nullable=False
-    )
-    poster_url: Mapped[str] = mapped_column(nullable=False)
-    poster_thumb_url: Mapped[str] = mapped_column(nullable=False)
-    title: Mapped[str] = mapped_column(nullable=False)
-    anime_type: Mapped[AnimeType] = mapped_column(default=AnimeType.UNKNOWN)
+    title: Mapped[str]
+
+    poster_url: Mapped[str]
+    poster_thumb_url: Mapped[str]
+    episodes: Mapped[int]
+    duration: Mapped[Optional[int]]
+    release_year: Mapped[Optional[int]]
+    release_season: Mapped[ReleaseSeason] = mapped_column(default=ReleaseSeason.UNDEFINED)
     status: Mapped[Status] = mapped_column(default=Status.UNKNOWN)
-    episodes: Mapped[int] = mapped_column(nullable=False)
-    duration: Mapped[int] = mapped_column(nullable=True)
-    tags: Mapped[List[str]] = mapped_column(
-        postgresql.ARRAY(String, dimensions=1, zero_indexes=True), nullable=False
-    )
-    synonyms: Mapped[List[str]] = mapped_column(
-        postgresql.ARRAY(String, dimensions=1, zero_indexes=True), nullable=False
-    )
-    related_animes: Mapped[List[str]] = mapped_column(
-        postgresql.ARRAY(String, dimensions=1, zero_indexes=True), nullable=False
-    )
-    release_year: Mapped[int] = mapped_column(nullable=True)
-    release_season: Mapped[ReleaseSeason] = mapped_column(
-        default=ReleaseSeason.UNDEFINED
-    )
+    anime_type: Mapped[AnimeType] = mapped_column(default=AnimeType.UNKNOWN)
+
+    sources: Mapped[List[str]]
+    tags: Mapped[List[str]]
+    synonyms: Mapped[List[str]]
+    related_animes: Mapped[List[str]]
