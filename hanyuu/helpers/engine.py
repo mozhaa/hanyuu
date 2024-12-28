@@ -1,10 +1,10 @@
-from typing import *
+from typing import Dict, Type
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 
-class Database:
+class LazyEngine:
     def __init__(self, url: str, base: Type[DeclarativeBase]) -> None:
         self.connected = False
         self.url = url
@@ -30,3 +30,16 @@ class Database:
     async def recreate_tables(self) -> None:
         await self.drop_tables()
         await self.create_tables()
+
+
+engines: Dict[str, LazyEngine] = {}
+
+
+async def get_engine(url: str, base: Type[DeclarativeBase], echo: bool = False) -> None:
+    global engines
+    if url not in engines:
+        engine = LazyEngine(url, base)
+        engine.connect(echo=echo)
+        await engine.create_tables()
+        engines[url] = engine
+    return engines[url]

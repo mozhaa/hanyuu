@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 
 from hanyuu.config import getenv
-from hanyuu.database.models import Base
+from hanyuu.database.main.models import Base
 from hanyuu.webapp.deps import AddedByDep, SessionDep
 
 templates = Jinja2Templates(directory=getenv("templates_dir"))

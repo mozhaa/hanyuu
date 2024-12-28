@@ -3,7 +3,7 @@ from typing import *
 
 from pyquery import PyQuery as pq
 
-from hanyuu.database.models import Category, QItem
+from hanyuu.database.main.models import Category, QItem
 
 from ..utils import default
 from .tools import get_page

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, field_validator
 
-from hanyuu.database.models import QItemSourceTiming, QItemSource
+from hanyuu.database.main.models import QItemSourceTiming, QItemSource
 from hanyuu.webapp.deps import AddedByDep, SessionDep
 
 from .utils import no_such, templates, update_model
@@ -19,7 +19,7 @@ class TimingSchema(BaseModel):
     reveal_start: time
 
     @classmethod
-    def str_to_time(cls, repr: str) -> time:
+    def str_to_time(cls, s: str) -> time:
         possible_formats = [
             "%H:%M:%S.%f",
             "%M:%S.%f",
@@ -30,10 +30,10 @@ class TimingSchema(BaseModel):
         ]
         for format in possible_formats:
             try:
-                return datetime.strptime(repr, format).time()
+                return datetime.strptime(s, format).time()
             except ValueError:
                 continue
-        raise ValueError(f'"{repr}" is not a valid timestamp')
+        raise ValueError(f'"{s}" is not a valid timestamp')
 
     @field_validator("guess_start", mode="before")
     @classmethod

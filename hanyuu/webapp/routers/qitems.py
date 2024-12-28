@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from hanyuu.database.models import Anime, Category, QItem
+from hanyuu.database.main.models import Anime, Category, QItem
 from hanyuu.webapp.deps import SessionDep
 
 from .utils import no_such, templates, update_model

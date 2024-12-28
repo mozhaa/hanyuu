@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 
-from .connection import get_db
+from .main.connection import get_engine
 
 
 async def main():
@@ -11,9 +11,9 @@ async def main():
     parser.add_argument("--drop-tables", action="store_true")
     args = parser.parse_args()
 
-    db = await get_db("database_tool")
+    engine = await get_engine()
     if args.drop_tables:
-        await db.drop_tables()
+        await engine.drop_tables()
         print("Successfully dropped tables.")
 
 

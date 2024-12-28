@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
-from hanyuu.database.models import QItem, QItemDifficulty
+from hanyuu.database.main.models import QItem, QItemDifficulty
 from hanyuu.webapp.deps import AddedByDep, SessionDep
 
 from .utils import no_such, templates, update_model

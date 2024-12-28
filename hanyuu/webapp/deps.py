@@ -4,12 +4,12 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from hanyuu.config import Settings, get_settings
-from hanyuu.database.connection import get_db
+from hanyuu.database.main.connection import get_engine
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
-    db = await get_db("webapp")
-    async with db.async_session(expire_on_commit=False) as session:
+    engine = await get_engine()
+    async with engine.async_session(expire_on_commit=False) as session:
         yield session
 
 

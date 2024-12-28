@@ -8,8 +8,8 @@ from sqlalchemy import select
 
 import hanyuu.webparse.anidb as anidb
 from hanyuu.config import getenv
-from hanyuu.database.connection import get_db
-from hanyuu.database.models import Anime, QItem
+from hanyuu.database.main.connection import get_engine
+from hanyuu.database.main.models import Anime, QItem
 
 
 class ProcessedList:
@@ -68,7 +68,7 @@ async def process_anime(anime_id: int) -> None:
     print(f"Processing {anime_id}...", end="")
     page = await anidb.Page.from_id(anime_id)
     qitems = page.qitems
-    async with db.async_session() as session:
+    async with engine.async_session() as session:
         result = await session.scalars(select(QItem).where(QItem.anime_id == anime_id))
         existing_qitems = [f"{q.category} {q.number}" for q in result.all()]
         qitems = [
@@ -82,7 +82,7 @@ async def process_anime(anime_id: int) -> None:
 
 
 async def read_from_db() -> Optional[int]:
-    async with db.async_session() as session:
+    async with engine.async_session() as session:
         anime_ids = (
             await session.scalars(
                 select(Anime.id).outerjoin(Anime.qitems).where(QItem.id.is_(None))
@@ -96,9 +96,9 @@ async def read_from_db() -> Optional[int]:
 
 
 async def start(args: Namespace) -> None:
-    global worker_dir, db, processed_list
+    global worker_dir, engine, processed_list
 
-    db = await get_db("qitems_parser")
+    engine = await get_engine()
     worker_dir = f"{getenv("resources_dir")}/workers/qitems_parser"
     processed_list = ProcessedList(f"{worker_dir}/processed.txt")
     queue = Queue(f"{worker_dir}/queue.txt", f"{worker_dir}/queue.lock")

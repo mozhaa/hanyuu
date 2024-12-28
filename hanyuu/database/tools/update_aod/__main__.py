@@ -5,20 +5,16 @@ import orjson
 from aiohttp import ClientSession
 from sqlalchemy import delete
 
-from hanyuu.database.connection import get_db
-from hanyuu.database.models import AnimeType, AODAnime, ReleaseSeason, Status
+import hanyuu.database.main as main
+from hanyuu.database.main.models import AnimeType, AODAnime, ReleaseSeason, Status
 from hanyuu.webparse.utils import default_headers
 
 mal_regexp = re.compile("^https://myanimelist.net/anime/([0-9]+)$")
 anidb_regexp = re.compile("^https://anidb.net/anime/([0-9]+)")
+url = "https://raw.githubusercontent.com/manami-project/anime-offline-database/master/anime-offline-database-minified.json"
 
 
 async def update() -> None:
-    url = (
-        "https://raw.githubusercontent.com/manami-project/anime-offline-database/"
-        "master/anime-offline-database-minified.json"
-    )
-
     print("Downloading .json...", end=" ")
     async with ClientSession() as session:
         async with session.get(url, headers=default_headers) as response:
@@ -67,9 +63,7 @@ async def update() -> None:
             tags=item["tags"],
             synonyms=item["synonyms"],
             related_animes=item["relatedAnime"],
-            release_year=(
-                item["animeSeason"]["year"] if "year" in item["animeSeason"] else None
-            ),
+            release_year=(item["animeSeason"]["year"] if "year" in item["animeSeason"] else None),
             release_season=ReleaseSeason[item["animeSeason"]["season"]],
         )
 
@@ -77,8 +71,8 @@ async def update() -> None:
 
     print(f"Found {len(animes)} animes")
     print("Commiting to database...", end=" ")
-    db = await get_db("aod_update")
-    async with db.async_session() as session:
+    engine = await main.get_engine()
+    async with engine.async_session() as session:
         await session.execute(delete(AODAnime))
         session.add_all(animes)
         await session.commit()

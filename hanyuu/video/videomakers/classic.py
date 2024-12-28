@@ -8,8 +8,8 @@ import aiohttp
 import ffmpeg
 
 from hanyuu.config import getenv
-from hanyuu.database.connection import Database, get_db
-from hanyuu.database.models import Category, QItemDifficulty, QItemSourceTiming
+from hanyuu.database.main.connection import get_engine
+from hanyuu.database.main.models import Category, QItemDifficulty, QItemSourceTiming
 from hanyuu.webparse.utils import default_headers
 
 from .base import VideoMakerBase
@@ -61,12 +61,10 @@ class VideoMakerConfig:
 class VideoMaker(VideoMakerBase):
     def __init__(self, **kwargs) -> None:
         self.c = VideoMakerConfig(**kwargs)
-        self.db: Database = None
 
     async def create_video(self, timing_id: int, difficulty_id: int) -> str:
-        if self.db is None:
-            self.db = await get_db("video_maker")
-        async with self.db.async_session() as session:
+        engine = await get_engine()
+        async with engine.async_session() as session:
             difficulty = await session.get(QItemDifficulty, difficulty_id)
             timing = await session.get(QItemSourceTiming, timing_id)
             source = await timing.awaitable_attrs.qitem_source

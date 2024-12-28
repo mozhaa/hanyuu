@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 import hanyuu.webparse.anidb as anidb
 import hanyuu.webparse.shiki as shiki
-from hanyuu.database.models import Anime, AODAnime
+from hanyuu.database.main.models import Anime, AODAnime
 from hanyuu.webapp.deps import SessionDep
 
 from .utils import already_exists, no_such, templates

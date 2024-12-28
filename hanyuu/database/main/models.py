@@ -75,8 +75,8 @@ class Anime(Base):
     shiki_dropped: Mapped[int] = mapped_column(default=0)
     shiki_on_hold: Mapped[int] = mapped_column(default=0)
     shiki_age_rating: Mapped[Optional[str]]
-    shiki_aired_on: Mapped[Optional[IncompleteDate]]
-    shiki_released_on: Mapped[Optional[IncompleteDate]]
+    shiki_aired_on: Mapped[Optional[IncompleteDate]] = mapped_column(IncompleteDate, nullable=True)
+    shiki_released_on: Mapped[Optional[IncompleteDate]] = mapped_column(IncompleteDate, nullable=True)
     shiki_videos: Mapped[List[List[str]]]
     shiki_synonyms: Mapped[List[str]]
     shiki_genres: Mapped[List[str]]
@@ -186,3 +186,24 @@ class AODAnime(Base):
     tags: Mapped[List[str]]
     synonyms: Mapped[List[str]]
     related_animes: Mapped[List[str]]
+
+
+# class ToshoTorrent(Base):
+#     __tablename__ = "tosho_torrent"
+
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     name: Mapped[str]
+#     link: Mapped[str]
+#     magnet: Mapped[str]
+#     torrentname: Mapped[Optional[str]]
+#     torrentfiles: Mapped[int]
+#     aid: Mapped[int] = mapped_column(index=True)
+
+
+# class ToshoFile(Base):
+#     __tablename__ = "tosho_file"
+
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     torrent_id: Mapped[int] = mapped_column(ForeignKey("tosho_torrent.id"))
+#     filename: Mapped[str]
+#     filesize: Mapped[int]
