@@ -7,9 +7,6 @@ from .base import DifficultyStrategy
 
 
 class Random(DifficultyStrategy):
-    def __init__(self, name: str) -> None:
-        self.name = name
-
     async def run(self, qitem_id: int) -> None:
         engine = await get_engine()
         async with engine.async_session() as session:
