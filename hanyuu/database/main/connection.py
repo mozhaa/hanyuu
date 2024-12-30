@@ -2,9 +2,9 @@ from typing import Optional
 
 from sqlalchemy import URL
 
-import hanyuu.helpers.engine as engine
+import hanyuu.utils.engine as engine
 from hanyuu.config import get_settings
-from hanyuu.helpers.engine import LazyEngine
+from hanyuu.utils.engine import LazyEngine
 
 from .models import Base
 
