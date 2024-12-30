@@ -1,14 +1,16 @@
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import *
 
+import yt_dlp
 from rapidfuzz import fuzz
 from youtubesearchpython.__future__ import VideosSearch
 
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItem, QItemSource
 
-from .strategy import SourceFindingStrategy
+from .strategy import SourceDownloadingStrategy, SourceFindingStrategy
 
 
 def similarity(x: float, y: float, sigma: float = -2, p: float = 2, k: float = 0) -> float:
@@ -74,60 +76,67 @@ def parse_time_as_seconds(s: str) -> float:
     raise ValueError(f"{s} is not a valid duration")
 
 
-class YoutubeSearchStrategy(SourceFindingStrategy):
+class YoutubeFindingStrategy(SourceFindingStrategy):
+    name: str
+
     def __init__(
         self,
+        name: str,
         title_algorithm: Callable[[str, str], float] = fuzz.token_ratio,
         score_threshold: float = 0.0,
         possible_durations: List[float] = [90, 150],
         helpers: List[str] = ["Creditless", "4K", "HD", "1080p"],
         negative_helpers: List[str] = ["Cover", "AMV", "Full", "Lyrics"],
     ) -> None:
+        self.name = name
         self.title_algorithm = title_algorithm
         self.score_threshold = score_threshold
         self.possible_durations = possible_durations
         self.helpers = helpers
         self.negative_helpers = negative_helpers
 
-    async def get_sorted_sources(self, qitem_id: int) -> List[Tuple[QItemSource, float]]:
-        engine = await get_engine()
-        async with engine.async_session() as session:
-            qitem = await session.get(QItem, qitem_id)
-            anime = await qitem.awaitable_attrs.anime
-            p_anime_mal = await anime.awaitable_attrs.p_mal
-            title_ro = anime.title_ro
-            title_en = p_anime_mal.title_en
-
-            scores = {}
-            for title in [title_ro, title_en]:
-                category = self._extended_category(qitem.category)
-                query = f"{title} {category} {qitem.number}"
-                results = (await VideosSearch(query=query, limit=10).next())["result"]
-                for video in results:
-                    score = self._score(video, query)
-                    link = video["link"]
-                    scores[link] = max(scores.get(link, 0), score)
-
-            scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-            scores = [
-                (
-                    QItemSource(
-                        qitem=qitem,
-                        platform="youtube",
-                        path=link,
-                    ),
-                    score,
-                )
-                for link, score in scores
-            ]
-
-        return scores
+    async def run(self, qitem_id: int) -> None:
+        qitem_source = await self.find_source(qitem_id)
+        if qitem_source is not None:
+            engine = await get_engine(True)
+            async with engine.async_session() as session:
+                session.add(qitem_source)
+                await session.commit()
 
     async def find_source(self, qitem_id: int) -> Optional[QItemSource]:
         sources = await self.get_sorted_sources(qitem_id)
-        best_source = sources[0]
-        if best_source[1] > self.score_threshold:
-            return best_source[0]
+        source, score = sources[0]
+        if score > self.score_threshold:
+            return source
+
+    async def get_sorted_sources(self, qitem_id: int) -> List[Tuple[QItemSource, float]]:
+        engine = await get_engine(True)
+        async with engine.async_session() as session:
+            qitem = await session.get(QItem, qitem_id)
+            anime = await qitem.awaitable_attrs.anime
+            title_ro = anime.shiki_title_ro
+            title_en = anime.shiki_title_en
+
+        scores = {}
+        for title in [title_ro, title_en]:
+            category = qitem.category.name
+            query = f"{title} {category} {qitem.number}"
+            results = (await VideosSearch(query=query, limit=10).next())["result"]
+            for video in results:
+                score = self._score(video, query)
+                link = video["link"]
+                scores[link] = max(scores.get(link, 0), score)
+
+        scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        scores = [
+            (
+                QItemSource(qitem=qitem, platform="youtube", path=link, added_by=self.name),
+                score,
+            )
+            for link, score in scores
+        ]
+
+        return scores
 
     def _title_score(self, title: str, query: str) -> float:
         return self.title_algorithm(preprocess(query), preprocess(title)) / 100
@@ -155,5 +164,32 @@ class YoutubeSearchStrategy(SourceFindingStrategy):
 
         return total_score
 
-    def _extended_category(self, category: str) -> str:
-        return {"OP": "Opening", "ED": "Ending"}[category]
+
+class YoutubeDownloadingStrategy(SourceDownloadingStrategy):
+    def __init__(self) -> None:
+        pass
+
+    async def is_valid(self, qitem_source_id: int) -> Optional[Callable[[], Awaitable[None]]]:
+        engine = await get_engine(True)
+        async with engine.async_session() as session:
+            qitem_source = await session.get(QItemSource, qitem_source_id)
+
+        if qitem_source.platform != "youtube":
+            return
+
+        async def run(download_dir: str) -> None:
+            output_dir = Path(download_dir) / qitem_source.platform / str(qitem_source.id)
+            params = {
+                "outtmpl": f"{output_dir}/%(title)s.%(ext)s",
+                "format": "bv[height<=720]*+ba/wv[height>=720]*+ba/b"
+            }
+            with yt_dlp.YoutubeDL(params=params) as ydl:
+                ret_code = ydl.download(qitem_source.path)
+
+            print(f"output_dir = {output_dir}")
+            if ret_code == 0:
+                print("success")
+            else:
+                print("failure, red_code =", ret_code)
+
+        return run
