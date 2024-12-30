@@ -1,5 +1,5 @@
 from .strategy import SourceFindingStrategy
-from .youtube import YoutubeSearchStrategy
+from .youtube import YoutubeFindingStrategy
 
 # strategies in priority order (from most prioritized to least)
-strategies = [YoutubeSearchStrategy()]
+strategies = [YoutubeFindingStrategy("youtube_strategy")]

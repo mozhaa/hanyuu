@@ -112,7 +112,6 @@ class QItemSource(BaseWithID):
     platform: Mapped[str]
     path: Mapped[str]
     added_by: Mapped[str]
-    verified: Mapped[bool]
     local_fp: Mapped[Optional[str]]
 
     qitem: Mapped["QItem"] = relationship(back_populates="sources")
