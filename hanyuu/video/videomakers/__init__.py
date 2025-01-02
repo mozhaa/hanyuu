@@ -1,2 +1,2 @@
 from .base import VideoMakerBase
-from .classic import ClassicVideoMaker
+from .classic import VideoMaker

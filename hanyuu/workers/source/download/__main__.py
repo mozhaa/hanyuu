@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 async def select_job() -> Optional[Awaitable[None]]:
-    root_dir = Path(getenv("resources_dir")) / "videos"
+    root_dir = Path(getenv("resources_dir")) / "videos" / "sources"
     engine = await get_engine()
     async with engine.async_session() as session:
         source_ids = (await session.scalars(select(QItemSource.id).where(QItemSource.local_fp.is_(None)))).all()

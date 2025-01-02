@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Callable
-from uuid import uuid1
 
 import aiohttp
 import ffmpeg
@@ -62,7 +61,7 @@ class VideoMaker(VideoMakerBase):
     def __init__(self, **kwargs) -> None:
         self.c = VideoMakerConfig(**kwargs)
 
-    async def create_video(self, timing_id: int, difficulty_id: int) -> str:
+    async def create_video(self, timing_id: int, difficulty_id: int, output_fp: str) -> None:
         engine = await get_engine()
         async with engine.async_session() as session:
             difficulty = await session.get(QItemDifficulty, difficulty_id)
@@ -70,35 +69,24 @@ class VideoMaker(VideoMakerBase):
             source = await timing.awaitable_attrs.qitem_source
             qitem = await source.awaitable_attrs.qitem
             anime = await qitem.awaitable_attrs.anime
-            local_file = await source.awaitable_attrs.local_file
-
-            title = anime.shiki_title_ro
-            poster_url = anime.shiki_poster_url
-            category = qitem.category
-            number = qitem.number
-            source_fp = local_file.name
-            reveal_start = timing.reveal_start
-            guess_start = timing.guess_start
 
         category_short = {
             Category.Opening: "OP",
             Category.Ending: "ED",
-        }[category]
-        text = f"{title} {category_short} {number}"
+        }[qitem.category]
+        text = f"{anime.shiki_title_ro} {category_short} {qitem.number}"
 
-        countdown_fp = (Path(self.c.countdowns_dir) / self.c.difficulty_func(difficulty)).resolve()
+        countdown_fp = (Path(self.c.countdowns_dir) / self.c.difficulty_func(difficulty.value)).resolve()
 
         font_fp = (Path(getenv("static_dir")) / "ttf" / "tccm.ttf").resolve()
 
-        output_dir = Path(getenv("resources_dir")) / "videos" / str(uuid1())
-        output_fp = output_dir / "video.mp4"
-        output_dir.mkdir(parents=True)
+        Path(output_fp).parent.mkdir(parents=True, exist_ok=True)
 
         poster_box_fp = Path(getenv("static_dir")) / "png" / "poster_box.png"
 
         poster_file = NamedTemporaryFile("w+b", delete_on_close=False)
         async with aiohttp.ClientSession(headers=default_headers) as session:
-            async with session.get(poster_url) as response:
+            async with session.get(anime.shiki_poster_url) as response:
                 poster_file.write(await response.read())
         poster_file.close()
 
@@ -106,8 +94,8 @@ class VideoMaker(VideoMakerBase):
         vp = self.c.vpos
 
         countdown = ffmpeg.input(str(countdown_fp.resolve()))
-        reveal = ffmpeg.input(source_fp, ss=reveal_start, t=vt.rD)
-        guess = ffmpeg.input(source_fp, ss=guess_start, t=vt.gD)
+        reveal = ffmpeg.input(source.local_fp, ss=timing.reveal_start, t=vt.rD)
+        guess = ffmpeg.input(source.local_fp, ss=timing.guess_start, t=vt.gD)
         poster = ffmpeg.input(poster_file.name, loop=1, t=vt.rD)
         poster_box = ffmpeg.input(poster_box_fp.resolve(), loop=1, t=vt.rD)
 
@@ -159,10 +147,12 @@ class VideoMaker(VideoMakerBase):
         result = ffmpeg.concat(countdown_video, guess_audio, reveal_video, reveal_audio, n=2, v=1, a=1)
         output = ffmpeg.output(
             result,
-            str(output_fp.resolve()),
+            output_fp,
             acodec=self.c.acodec,
             vcodec=self.c.vcodec,
             r=self.c.fps,
         )
+        
+        print(output.compile())
+
         output.run()
-        return output_fp

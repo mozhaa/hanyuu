@@ -141,6 +141,18 @@ class QItemDifficulty(BaseWithID):
     __table_args__ = (CheckConstraint("value >= 0 AND value <= 100", name="_value_range"),)
 
 
+class QuizPart(BaseWithID):
+    __tablename__ = "quiz_part"
+
+    timing_id: Mapped[int] = mapped_column(ForeignKey("qitem_source_timing.id"))
+    difficulty_id: Mapped[int] = mapped_column(ForeignKey("qitem_difficulty.id"))
+    style: Mapped[str]
+    local_fp: Mapped[str]
+
+    timing: Mapped[QItemSourceTiming] = relationship()
+    difficulty: Mapped[QItemDifficulty] = relationship()
+
+
 class AnimeType(enum.Enum):
     TV = enum.auto()
     OVA = enum.auto()
