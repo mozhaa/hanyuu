@@ -27,7 +27,8 @@ class YtDlpStrategy(SourceDownloadStrategy):
         async def run() -> None:
             params = {
                 "outtmpl": f"{download_dir}/%(title)s.%(ext)s",
-                "format": "bv[height<=720]*+ba/wv[height>=720]*+ba/b",
+                "format": "bv*[height=720]+ba/b[height=720]/"
+                "bv*[height>720][height<=1080]+ba/b[height>720][height<=1080]/bv*+ba/b",
             }
 
             with yt_dlp.YoutubeDL(params=params) as ydl:
