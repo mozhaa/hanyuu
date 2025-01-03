@@ -133,7 +133,7 @@ class VideoMaker(VideoMakerBase):
         guess_audio = (
             guess.audio.filter("afade", t="out", st=vt.gst, d=vt.gfo)
             .filter("afade", t="in", st=0, d=vt.gfi)
-            .filter("adelay", delays=vt.ad, all=1)
+            .filter("adelay", delays=vt.ad * 1000, all=1)
             .filter("loudnorm", I=self.c.loudnorm)
             .filter("apad", pad_dur=vt.cD - vt.ad - vt.gD)
         )
@@ -152,7 +152,5 @@ class VideoMaker(VideoMakerBase):
             vcodec=self.c.vcodec,
             r=self.c.fps,
         )
-        
-        print(output.compile())
 
         output.run()
