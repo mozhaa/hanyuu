@@ -26,7 +26,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
 
         async def run() -> None:
             params = {
-                "outtmpl": f"{download_dir}/%(title)s.%(ext)s",
+                "outtmpl": f"{download_dir}/{qitem_source_id}.%(ext)s",
                 "format": "bv*[height=720]+ba/b[height=720]/"
                 "bv*[height>720][height<=1080]+ba/b[height>720][height<=1080]/bv*+ba/b",
             }
@@ -35,7 +35,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
                 ret_code = ydl.download(qitem_source.path)
 
             if ret_code == 0:
-                local_fp = str(next(Path(download_dir).iterdir()).resolve())
+                local_fp = str(next(Path(download_dir).glob(f"{qitem_source_id}.*")).resolve())
                 logger.info(f"Download successed, filepath = {local_fp}")
                 async with engine.async_session() as session:
                     session.add(qitem_source)

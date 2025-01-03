@@ -21,7 +21,7 @@ async def select_job() -> Optional[Awaitable[None]]:
         source_ids = (await session.scalars(select(QItemSource.id).where(QItemSource.local_fp.is_(None)))).all()
     for source_id in source_ids:
         for strategy in strategies:
-            download_dir = root_dir / strategy.name / str(source_id)
+            download_dir = root_dir / strategy.name
             suitable, run = await strategy.check(source_id, str(download_dir.resolve()))
             if suitable:
                 logger.info(f'Running strategy "{strategy.name}" on source_id={source_id}')

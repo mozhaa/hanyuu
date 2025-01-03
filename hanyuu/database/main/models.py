@@ -6,7 +6,7 @@ import sqlalchemy.types as types
 from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, backref
 
 
 def keyvalgen(obj):
@@ -127,6 +127,7 @@ class QItemSourceTiming(BaseWithID):
     added_by: Mapped[str]
 
     qitem_source: Mapped["QItemSource"] = relationship(back_populates="timings")
+    quizparts: Mapped[List["QuizPart"]] = relationship(back_populates="timing", cascade="all, delete")
 
 
 class QItemDifficulty(BaseWithID):
@@ -137,6 +138,7 @@ class QItemDifficulty(BaseWithID):
     added_by: Mapped[str]
 
     qitem: Mapped["QItem"] = relationship(back_populates="difficulties")
+    quizparts: Mapped[List["QuizPart"]] = relationship(back_populates="difficulty", cascade="all, delete")
 
     __table_args__ = (CheckConstraint("value >= 0 AND value <= 100", name="_value_range"),)
 
@@ -149,8 +151,8 @@ class QuizPart(BaseWithID):
     style: Mapped[str]
     local_fp: Mapped[str]
 
-    timing: Mapped[QItemSourceTiming] = relationship()
-    difficulty: Mapped[QItemDifficulty] = relationship()
+    timing: Mapped[QItemSourceTiming] = relationship(back_populates="quizparts")
+    difficulty: Mapped[QItemDifficulty] = relationship(back_populates="quizparts")
 
 
 class AnimeType(enum.Enum):
