@@ -27,9 +27,7 @@ async def create_qitem(request: Request, session: SessionDep, parent_id: int) ->
         return no_such("anime", id=parent_id)
     qitems = await anime.awaitable_attrs.qitems
     # take minimal excluded opening number for new number
-    numbers = sorted(
-        [qitem.number for qitem in qitems if qitem.category == Category.Opening]
-    )
+    numbers = sorted([qitem.number for qitem in qitems if qitem.category == Category.Opening])
     number = 1
     for existing_number in numbers:
         if number == existing_number:
@@ -44,9 +42,7 @@ async def create_qitem(request: Request, session: SessionDep, parent_id: int) ->
     for source in sources:
         await source.awaitable_attrs.timings
     await qitem.awaitable_attrs.difficulties
-    return templates.TemplateResponse(
-        request=request, name="qitem/edit.html", context={"qitem": qitem}
-    )
+    return templates.TemplateResponse(request=request, name="qitem/edit.html", context={"qitem": qitem})
 
 
 @router.put("")

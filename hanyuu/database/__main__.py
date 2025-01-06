@@ -5,9 +5,7 @@ from .main.connection import get_engine
 
 
 async def main():
-    parser = argparse.ArgumentParser(
-        "Database Tool", "Tool for simple database actions"
-    )
+    parser = argparse.ArgumentParser("Database Tool", "Tool for simple database actions")
     parser.add_argument("--drop-tables", action="store_true")
     args = parser.parse_args()
 

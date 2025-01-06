@@ -19,27 +19,19 @@ class SourceSchema(BaseModel):
 
 
 @router.post("", response_class=HTMLResponse)
-async def create_source(
-    request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int
-) -> Any:
+async def create_source(request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int) -> Any:
     qitem = await session.get(QItem, parent_id)
     if qitem is None:
         return no_such("qitem", id=parent_id)
-    source = QItemSource(
-        qitem_id=qitem.id, platform="youtube", path="", added_by=added_by
-    )
+    source = QItemSource(qitem_id=qitem.id, platform="youtube", path="", added_by=added_by)
     session.add(source)
     await session.commit()
     await source.awaitable_attrs.timings
-    return templates.TemplateResponse(
-        request=request, name="source/edit.html", context={"source": source}
-    )
+    return templates.TemplateResponse(request=request, name="source/edit.html", context={"source": source})
 
 
 @router.put("")
-async def update_source(
-    session: SessionDep, added_by: AddedByDep, source: SourceSchema
-) -> Any:
+async def update_source(session: SessionDep, added_by: AddedByDep, source: SourceSchema) -> Any:
     return await update_model(session, added_by, QItemSource, source)
 
 

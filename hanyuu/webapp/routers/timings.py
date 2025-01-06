@@ -47,24 +47,18 @@ class TimingSchema(BaseModel):
 
 
 @router.post("", response_class=HTMLResponse)
-async def create_timing(
-    request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int
-) -> Any:
+async def create_timing(request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int) -> Any:
     source = await session.get(QItemSource, parent_id)
     if source is None:
         return no_such("source", id=parent_id)
     timing = QItemSourceTiming(qitem_source_id=parent_id, added_by=added_by)
     session.add(timing)
     await session.commit()
-    return templates.TemplateResponse(
-        request=request, name="timing/edit.html", context={"timing": timing}
-    )
+    return templates.TemplateResponse(request=request, name="timing/edit.html", context={"timing": timing})
 
 
 @router.put("")
-async def update_timing(
-    session: SessionDep, added_by: AddedByDep, timing: TimingSchema
-) -> Any:
+async def update_timing(session: SessionDep, added_by: AddedByDep, timing: TimingSchema) -> Any:
     return await update_model(session, added_by, QItemSourceTiming, timing)
 
 

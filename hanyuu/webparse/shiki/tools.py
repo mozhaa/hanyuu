@@ -32,8 +32,7 @@ def process_anime(anime: Dict[str, Any]) -> Dict[str, Any]:
         "poster",
         {
             "originalUrl": "https://shikimori.one/assets/globals/missing/main.png",
-            "mainUrl": "https://shikimori.one/assets/globals/missing/"
-            "preview_animanga.png",
+            "mainUrl": "https://shikimori.one/assets/globals/missing/preview_animanga.png",
         },
     )
 
@@ -67,10 +66,7 @@ async def get_anime(mal_id: int) -> Optional[Dict[str, Any]]:
 
 
 async def search(query: str, limit: int = 10) -> List[Dict[str, Any]]:
-    query = (
-        f'{{ animes(search: "{query}", limit: {limit}, rating: "!rx") '
-        f"{{ {graphql_args} }} }}"
-    )
+    query = f'{{ animes(search: "{query}", limit: {limit}, rating: "!rx") {{ {graphql_args} }} }}'
     body = {"operationName": None, "query": query, "variables": {}}
     async with ClientSession(headers=default_headers) as session:
         async with session.post(url=graphql_url, json=body) as response:

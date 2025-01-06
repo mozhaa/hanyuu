@@ -71,9 +71,7 @@ async def process_anime(anime_id: int) -> None:
     async with engine.async_session() as session:
         result = await session.scalars(select(QItem).where(QItem.anime_id == anime_id))
         existing_qitems = [f"{q.category} {q.number}" for q in result.all()]
-        qitems = [
-            q for q in qitems if f"{q.category} {q.number}" not in existing_qitems
-        ]
+        qitems = [q for q in qitems if f"{q.category} {q.number}" not in existing_qitems]
         if len(qitems) > 0:
             session.add_all(qitems)
             await session.commit()
@@ -83,11 +81,7 @@ async def process_anime(anime_id: int) -> None:
 
 async def read_from_db() -> Optional[int]:
     async with engine.async_session() as session:
-        anime_ids = (
-            await session.scalars(
-                select(Anime.id).outerjoin(Anime.qitems).where(QItem.id.is_(None))
-            )
-        ).all()
+        anime_ids = (await session.scalars(select(Anime.id).outerjoin(Anime.qitems).where(QItem.id.is_(None)))).all()
     processed = await processed_list.get()
     for anime_id in anime_ids:
         if anime_id not in processed:

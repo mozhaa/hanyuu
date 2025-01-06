@@ -18,24 +18,18 @@ class DifficultySchema(BaseModel):
 
 
 @router.post("", response_class=HTMLResponse)
-async def create_difficulty(
-    request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int
-) -> Any:
+async def create_difficulty(request: Request, added_by: AddedByDep, session: SessionDep, parent_id: int) -> Any:
     qitem = await session.get(QItem, parent_id)
     if qitem is None:
         return no_such("qitem", id=parent_id)
     difficulty = QItemDifficulty(qitem_id=qitem.id, value=1, added_by=added_by)
     session.add(difficulty)
     await session.commit()
-    return templates.TemplateResponse(
-        request=request, name="difficulty/edit.html", context={"difficulty": difficulty}
-    )
+    return templates.TemplateResponse(request=request, name="difficulty/edit.html", context={"difficulty": difficulty})
 
 
 @router.put("")
-async def update_difficulty(
-    session: SessionDep, added_by: AddedByDep, difficulty: DifficultySchema
-) -> Any:
+async def update_difficulty(session: SessionDep, added_by: AddedByDep, difficulty: DifficultySchema) -> Any:
     return await update_model(session, added_by, QItemDifficulty, difficulty)
 
 

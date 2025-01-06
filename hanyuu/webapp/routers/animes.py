@@ -20,14 +20,9 @@ router = APIRouter(prefix="/animes")
 async def read_animes(request: Request, session: SessionDep, page: int = 1) -> Any:
     page_size = 20
     result = await session.scalars(
-        select(Anime)
-        .order_by(Anime.updated_at.desc())
-        .limit(page_size)
-        .offset((page - 1) * page_size)
+        select(Anime).order_by(Anime.updated_at.desc()).limit(page_size).offset((page - 1) * page_size)
     )
-    return templates.TemplateResponse(
-        request=request, name="anime/read_all.html", context={"animes": result.all()}
-    )
+    return templates.TemplateResponse(request=request, name="anime/read_all.html", context={"animes": result.all()})
 
 
 @router.get("/search", response_class=JSONResponse)
@@ -38,9 +33,7 @@ async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
         lambda r: r.all(),
         await asyncio.gather(
             session.scalars(select(Anime.mal_id).where(Anime.mal_id.in_(result_ids))),
-            session.scalars(
-                select(AODAnime.mal_id).where(AODAnime.mal_id.in_(result_ids))
-            ),
+            session.scalars(select(AODAnime.mal_id).where(AODAnime.mal_id.in_(result_ids))),
         ),
     )
     results = [result for result in results if int(result["id"]) in exist_in_aod]
@@ -60,14 +53,9 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
     aod_anime = await session.get(AODAnime, mal_id)
     if aod_anime is None:
         return no_such("aod_anime", mal_id=mal_id)
-    anidb_page, shiki_anime = await asyncio.gather(
-        anidb.Page.from_id(aod_anime.anidb_id), shiki.get_anime(mal_id)
-    )
+    anidb_page, shiki_anime = await asyncio.gather(anidb.Page.from_id(aod_anime.anidb_id), shiki.get_anime(mal_id))
     ratings_count = sum([score[1] for score in shiki_anime["scoresStats"]])
-    rating = (
-        sum([score[0] * score[1] for score in shiki_anime["scoresStats"]])
-        / ratings_count
-    )
+    rating = sum([score[0] * score[1] for score in shiki_anime["scoresStats"]]) / ratings_count
     statuses = dict([(status[0], status[1]) for status in shiki_anime["statusesStats"]])
     result = Anime(
         mal_id=mal_id,
@@ -123,9 +111,7 @@ async def read_anime(request: Request, session: SessionDep, mal_id: int) -> Any:
 async def delete_anime(session: SessionDep, mal_id: int) -> Any:
     anime = await session.get(Anime, mal_id)
     if anime is None:
-        return Response(
-            content=f"Anime with id={mal_id} does not exist", status_code=400
-        )
+        return Response(content=f"Anime with id={mal_id} does not exist", status_code=400)
     await session.delete(anime)
     await session.commit()
 
@@ -139,9 +125,7 @@ class AnimeAliasScheme(BaseModel):
 async def update_alias(session: SessionDep, obj: AnimeAliasScheme) -> Any:
     anime = await session.get(Anime, obj.id)
     if anime is None:
-        return Response(
-            content=f"Anime with id={obj.id} does not exist", status_code=400
-        )
+        return Response(content=f"Anime with id={obj.id} does not exist", status_code=400)
     if len(obj.alias) == 0:
         obj.alias = None
     anime.alias = obj.alias

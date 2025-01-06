@@ -6,8 +6,7 @@ from . import start
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
         "QItems Parser",
-        usage="Periodically scan through hanyuu.database, "
-        "and parse QItems from AniDB for animes.",
+        usage="Periodically scan through hanyuu.database, and parse QItems from AniDB for animes.",
     )
     argparser.add_argument(
         "-i",
