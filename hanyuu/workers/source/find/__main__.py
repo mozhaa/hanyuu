@@ -61,4 +61,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", type=float, default=5, help="interval in seconds between job starts")
     args = parser.parse_args()
-    asyncio.run(main(args.interval))
+    asyncio.run(main(args.t))
