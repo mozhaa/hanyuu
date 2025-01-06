@@ -1,5 +1,10 @@
-from .base import SourceFindStrategy
-from .youtube import YoutubeFindStrategy
 from typing import List
 
-strategies: List[SourceFindStrategy] = [YoutubeFindStrategy("strategy_youtube")]
+from .base import SourceFindStrategy
+from .shiki import ShikiAttachmentsStrategy
+from .youtube import YoutubeFindStrategy
+
+strategies: List[SourceFindStrategy] = [
+    ShikiAttachmentsStrategy("strategy_shiki"),
+    YoutubeFindStrategy("strategy_youtube"),
+]
