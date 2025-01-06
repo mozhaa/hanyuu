@@ -27,6 +27,7 @@ httpx = "<0.28.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
+termcolor = "^2.5.0"
 
 [build-system]
 requires = ["poetry-core"]
