@@ -93,8 +93,6 @@ async def run_job(k: bool) -> None:
                             )
                         return
 
-    logger.debug("No jobs were found")
-
 
 async def main(interval: float, k: bool) -> None:
     rate_limited_run_job = restrict_callrate(interval)(run_job)

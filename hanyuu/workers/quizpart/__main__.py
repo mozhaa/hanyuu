@@ -145,8 +145,6 @@ async def run_job(k: bool, videomaker: VideoMakerBase) -> None:
                     await session.commit()
             return
 
-    logger.debug("No jobs were found")
-
 
 async def main(interval: float, k: bool, videomaker: VideoMakerBase) -> None:
     rate_limited_run_job = restrict_callrate(interval)(run_job)
