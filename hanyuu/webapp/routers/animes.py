@@ -1,4 +1,3 @@
-import asyncio
 from typing import *
 
 from fastapi import APIRouter, Request
@@ -29,14 +28,7 @@ async def read_animes(request: Request, session: SessionDep, page: int = 1) -> A
 async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
     results = await shiki.search(query=q, limit=30)
     result_ids = [int(item["id"]) for item in results]
-    already_exist, exist_in_aod = map(
-        lambda r: r.all(),
-        await asyncio.gather(
-            session.scalars(select(Anime.mal_id).where(Anime.mal_id.in_(result_ids))),
-            session.scalars(select(AODAnime.mal_id).where(AODAnime.mal_id.in_(result_ids))),
-        ),
-    )
-    results = [result for result in results if int(result["id"]) in exist_in_aod]
+    already_exist = (await session.scalars(select(Anime.mal_id).where(Anime.mal_id.in_(result_ids)))).all()
     for result in results:
         result["added"] = int(result["id"]) in already_exist
     return templates.TemplateResponse(
@@ -50,16 +42,21 @@ async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
 async def create_anime(session: SessionDep, mal_id: int) -> Any:
     if await session.get(Anime, mal_id) is not None:
         return already_exists("anime", mal_id=mal_id)
-    aod_anime = await session.get(AODAnime, mal_id)
-    if aod_anime is None:
-        return no_such("aod_anime", mal_id=mal_id)
-    anidb_page, shiki_anime = await asyncio.gather(anidb.Page.from_id(aod_anime.anidb_id), shiki.get_anime(mal_id))
+    shiki_anime = await shiki.get_anime(mal_id)
+    if shiki_anime.get("anidb_id", None) is None:
+        aod_anime = await session.get(AODAnime, mal_id)
+        if aod_anime is None:
+            raise RuntimeError(
+                f"Couldn't parse anidb_id by mal_id={mal_id} (missing from AOD, not in shiki external links)"
+            )
+        shiki_anime["anidb_id"] = aod_anime.anidb_id
+    anidb_page = await anidb.Page.from_id(shiki_anime["anidb_id"])
     ratings_count = sum([score[1] for score in shiki_anime["scoresStats"]])
     rating = sum([score[0] * score[1] for score in shiki_anime["scoresStats"]]) / ratings_count
     statuses = dict([(status[0], status[1]) for status in shiki_anime["statusesStats"]])
     result = Anime(
         mal_id=mal_id,
-        anidb_id=aod_anime.anidb_id,
+        anidb_id=shiki_anime["anidb_id"],
         shiki_title_ro=shiki_anime["name"],
         shiki_title_ru=shiki_anime["russian"],
         shiki_title_en=shiki_anime["english"],
