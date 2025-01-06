@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import List, Tuple, Type
 
-from sqlalchemy import select
+from sqlalchemy import delete, label, select
 
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
@@ -37,7 +37,45 @@ async def delete_invalid_records(records: List[Tuple[int, str]], entity: Type[Ba
     logger.info(f"Total records deleted: {n_deleted_records}")
 
 
+async def delete_duplicated_quizparts() -> None:
+    engine = await get_engine()
+    async with engine.async_session() as session:
+        keep_qparts = (
+            select(
+                label("d_id", QItemDifficulty.id),
+                label("t_id", QItemSourceTiming.id),
+                label("qp_s", QuizPart.style),
+                func.count(),
+                label("qp_id", func.max(QuizPart.id)),
+            )
+            .join(QuizPart.difficulty)
+            .join(QuizPart.timing)
+            .group_by(QItemDifficulty.id, QItemSourceTiming.id, QuizPart.style)
+            .having(func.count() > 1)
+            .subquery()
+        )
+
+        delete_qparts = (
+            await session.scalars(
+                select(QuizPart.id).join(
+                    keep_qparts,
+                    (keep_qparts.c.d_id == QuizPart.difficulty_id)
+                    & (keep_qparts.c.t_id == QuizPart.timing_id)
+                    & (keep_qparts.c.qp_s == QuizPart.style)
+                    & (keep_qparts.c.qp_id != QuizPart.id),
+                )
+            )
+        ).all()
+
+        if len(delete_qparts) > 0:
+            logger.info(f"Deleting quizparts as duplicates, ids={delete_qparts}")
+            await session.execute(delete(QuizPart).where(QuizPart.id.in_(delete_qparts)))
+            await session.commit()
+
+
 async def cleanup() -> None:
+    await delete_duplicated_quizparts()
+
     engine = await get_engine()
     async with engine.async_session() as session:
         quizpart_files = (await session.execute(select(QuizPart.id, QuizPart.local_fp))).all()
