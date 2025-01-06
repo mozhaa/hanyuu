@@ -1,10 +1,14 @@
 import argparse
 import asyncio
+import logging
+import logging.config
 import time
 from typing import Awaitable, Callable, List, Optional
 
 import aiofiles
 from filelock import FileLock
+
+logger = logging.getLogger(__name__)
 
 
 class FiledList:
@@ -18,11 +22,14 @@ class FiledList:
         async with aiofiles.open(self.fp, "a+") as f:
             await f.seek(0, 0)
             self.list = [int(x.strip()) for x in await f.readlines()]
+        if not self.readonly:
+            self.before = set(self.list)
         return self.list
 
     async def __aexit__(self, *args, **kwargs) -> None:
         if not self.readonly:
-            print("writing", self.list)
+            self.after = set(self.list)
+            logger.debug(f"{self.fp}, added: {self.after - self.before}, removed: {self.before - self.after}")
             async with aiofiles.open(self.fp, "w+") as f:
                 await f.writelines([f"{x}\n" for x in self.list])
         self.lock.release()
@@ -97,3 +104,56 @@ class StrategyRunner:
 
     def start(self) -> None:
         asyncio.run(self.poll_many())
+
+
+def worker_log_config(fp: str) -> None:
+    class OnlyInternalFilter(logging.Filter):
+        def filter(self, record):
+            if record.levelno < logging.INFO:
+                return False
+            path = record.name.split(".")
+            is_internal = path[0] in ["__main__", "hanyuu"]
+            if not is_internal and record.levelno < logging.WARNING:
+                return False
+            return True
+
+    CONFIG = {
+        "version": 1,
+        "formatters": {
+            "brief": {"format": "%(asctime)s - %(levelname)s - %(message)s", "datefmt": "%H:%M:%S"},
+            "precise": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                "datefmt": "%d-%m-%y %H:%M:%S",
+            },
+        },
+        "filters": {
+            "internal": {
+                "()": OnlyInternalFilter,
+            }
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "INFO",
+                "formatter": "brief",
+                "stream": "ext://sys.stderr",
+                "filters": ["internal"],
+            },
+            "file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": fp,
+                "level": "NOTSET",
+                "formatter": "precise",
+                "maxBytes": 5242880,
+                "encoding": "utf-8",
+                "mode": "a",
+            },
+        },
+        "loggers": {
+            "root": {"level": "NOTSET", "handlers": ["console", "file"]},
+            "hanyuu": {"level": "NOTSET"},
+            "__main__": {"level": "NOTSET"},
+        },
+    }
+
+    logging.config.dictConfig(CONFIG)

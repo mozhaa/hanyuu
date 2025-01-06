@@ -6,7 +6,7 @@ import sqlalchemy.types as types
 from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, backref
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 def keyvalgen(obj):
