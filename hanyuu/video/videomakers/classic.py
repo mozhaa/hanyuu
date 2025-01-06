@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Callable
+from typing import Callable, Optional
 
 import aiohttp
 import ffmpeg
@@ -12,6 +12,12 @@ from hanyuu.database.main.models import Category, QItemDifficulty, QItemSourceTi
 from hanyuu.webparse.utils import default_headers
 
 from .base import VideoMakerBase
+
+countdowns_dir = Path(getenv("static_dir")) / "video" / "countdowns"
+
+
+def difficulty_func(value: int) -> str:
+    return ["very easy.mkv", "easy.mkv", "medium.mkv", "hard.mkv", "very hard.mkv"][min(value // 20, 4)]
 
 
 @dataclass
@@ -45,21 +51,28 @@ class VideoPositioning:
     text_y: int = 620  # text y coordinate
 
 
-@dataclass
-class VideoMakerConfig:
-    countdowns_dir: str  # directory with countdowns videos
-    difficulty_func: Callable[[int], str]  # difficulty |-> countdown file name
-    loudnorm: float = -18
-    acodec: str = "aac"
-    vcodec: str = "hevc"
-    fps: int = 24
-    vtiming: VideoTimings = field(default_factory=VideoTimings)
-    vpos: VideoPositioning = field(default_factory=VideoPositioning)
-
-
 class VideoMaker(VideoMakerBase):
-    def __init__(self, **kwargs) -> None:
-        self.c = VideoMakerConfig(**kwargs)
+    def __init__(
+        self,
+        name: str,
+        countdowns_dir: str = countdowns_dir,  # directory with countdowns videos
+        difficulty_func: Callable[[int], str] = difficulty_func,  # difficulty |-> countdown file name
+        loudnorm: float = -18,
+        acodec: str = "aac",
+        vcodec: str = "hevc",
+        fps: int = 30,
+        vtiming: Optional[VideoTimings] = None,
+        vpos: Optional[VideoPositioning] = None,
+    ) -> None:
+        super().__init__(name)
+        self.countdowns_dir = countdowns_dir
+        self.difficulty_func = difficulty_func
+        self.loudnorm = loudnorm
+        self.acodec = acodec
+        self.vcodec = vcodec
+        self.fps = fps
+        self.vtiming = vtiming if vtiming is not None else VideoTimings()
+        self.vpos = vpos if vpos is not None else VideoPositioning()
 
     async def create_video(self, timing_id: int, difficulty_id: int, output_fp: str) -> None:
         engine = await get_engine()
@@ -76,7 +89,7 @@ class VideoMaker(VideoMakerBase):
         }[qitem.category]
         text = f"{anime.shiki_title_ro} {category_short} {qitem.number}"
 
-        countdown_fp = (Path(self.c.countdowns_dir) / self.c.difficulty_func(difficulty.value)).resolve()
+        countdown_fp = (Path(self.countdowns_dir) / self.difficulty_func(difficulty.value)).resolve()
 
         font_fp = (Path(getenv("static_dir")) / "ttf" / "tccm.ttf").resolve()
 
@@ -90,8 +103,8 @@ class VideoMaker(VideoMakerBase):
                 poster_file.write(await response.read())
         poster_file.close()
 
-        vt = self.c.vtiming
-        vp = self.c.vpos
+        vt = self.vtiming
+        vp = self.vpos
 
         countdown = ffmpeg.input(str(countdown_fp.resolve()))
         reveal = ffmpeg.input(source.local_fp, ss=timing.reveal_start, t=vt.rD)
@@ -134,23 +147,25 @@ class VideoMaker(VideoMakerBase):
             guess.audio.filter("afade", t="out", st=vt.gst, d=vt.gfo)
             .filter("afade", t="in", st=0, d=vt.gfi)
             .filter("adelay", delays=vt.ad * 1000, all=1)
-            .filter("loudnorm", I=self.c.loudnorm)
+            .filter("loudnorm", I=self.loudnorm)
             .filter("apad", pad_dur=vt.cD - vt.ad - vt.gD)
         )
 
         reveal_audio = (
             reveal.audio.filter("afade", t="out", st=vt.rst, d=vt.rfo)
             .filter("afade", t="in", st=0, d=vt.rfi)
-            .filter("loudnorm", I=self.c.loudnorm)
+            .filter("loudnorm", I=self.loudnorm)
         )
 
         result = ffmpeg.concat(countdown_video, guess_audio, reveal_video, reveal_audio, n=2, v=1, a=1)
         output = ffmpeg.output(
             result,
             output_fp,
-            acodec=self.c.acodec,
-            vcodec=self.c.vcodec,
-            r=self.c.fps,
+            acodec=self.acodec,
+            vcodec=self.vcodec,
+            r=self.fps,
+            nostats=None,
+            loglevel="error",
         )
 
         output.run()
