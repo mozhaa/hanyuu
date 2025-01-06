@@ -3,6 +3,7 @@ import asyncio
 import logging
 import logging.config
 import time
+from pathlib import Path
 from typing import Awaitable, Callable, List, Optional
 
 import aiofiles
@@ -155,5 +156,7 @@ def worker_log_config(fp: str) -> None:
             "__main__": {"level": "NOTSET"},
         },
     }
+
+    Path(fp).parent.mkdir(parents=True, exist_ok=True)
 
     logging.config.dictConfig(CONFIG)
