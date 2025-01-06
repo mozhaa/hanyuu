@@ -19,7 +19,7 @@ class YoutubeFindStrategy(SourceFindStrategy):
         self,
         name: str,
         title_algorithm: Callable[[str, str], float] = fuzz.token_ratio,
-        score_threshold: float = 0.0,
+        score_threshold: float = 0.7,
         possible_durations: List[float] = [90, 150],
         helpers: List[str] = ["Creditless", "4K", "HD", "1080p"],
         negative_helpers: List[str] = ["Cover", "AMV", "Full", "Lyrics"],
@@ -43,9 +43,9 @@ class YoutubeFindStrategy(SourceFindStrategy):
         sources = await self.get_sorted_sources(qitem_id)
         source, score = sources[0]
         if score >= self.score_threshold:
-            logger.info(f"Top score: {score} >= {self.score_threshold}, strategy has successed")
+            logger.info(f"Top score: {score} >= {self.score_threshold}, link={source.path}, success")
             return source
-        logger.info(f"Top score: {score} < {self.score_threshold}, strategy has failed")
+        logger.info(f"Top score: {score} < {self.score_threshold}, link={source.path}, failure")
 
     async def get_sorted_sources(self, qitem_id: int) -> List[Tuple[QItemSource, float]]:
         engine = await get_engine(True)
@@ -59,12 +59,14 @@ class YoutubeFindStrategy(SourceFindStrategy):
         for title in [title_ro, title_en]:
             category = qitem.category.name
             query = f"{title} {category} {qitem.number}"
-            logger.info("Making youtube search request...")
+            logger.info(f"YouTube search query: {query}")
             results = (await VideosSearch(query=query, limit=10).next())["result"]
             logger.info(f"Found {len(results)} youtube search results")
             for video in results:
                 score = self._score(video, query)
                 link = video["link"]
+                if link not in scores:
+                    logger.debug(f"Title='{video["title"]}', link={link}, score={score:.3f}")
                 scores[link] = max(scores.get(link, 0), score)
 
         scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -79,7 +81,7 @@ class YoutubeFindStrategy(SourceFindStrategy):
         return scores
 
     def _title_score(self, title: str, query: str) -> float:
-        return self.title_algorithm(preprocess(query), preprocess(title)) / 100
+        return self.title_algorithm(preprocess(query, num_w=5), preprocess(title, num_w=5)) / 100
 
     def _helpers_score(self, title: str) -> float:
         return helpers_score(self.helpers, title)
