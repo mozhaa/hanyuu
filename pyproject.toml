@@ -23,6 +23,8 @@ youtube-search-python = "^1.6.6"
 ffmpeg-python = "^0.2.0"
 yt-dlp = "^2024.12.23"
 httpx = "<0.28.0"
+qbittorrent-api = "^2024.12.71"
+bencodepy = "^0.9.5"
 
 
 [tool.poetry.group.dev.dependencies]

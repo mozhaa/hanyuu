@@ -3,8 +3,7 @@ import re
 from pathlib import Path
 from typing import List, Optional
 
-import bencoder
-import orjson
+import bencodepy
 from rapidfuzz import fuzz
 
 from hanyuu.config import getenv
@@ -30,36 +29,16 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
         torrent_fp: Optional[Path] = None,
         folder_threshold: float = 0.9,
         file_threshold: float = 0.8,
-        cache_fp: Optional[Path] = None,
-        cache: bool = True,
     ) -> None:
         super().__init__(name)
         self.torrent_fp = torrent_fp or Path(getenv("static_dir")) / "anitousen.torrent"
         self.folder_threshold = folder_threshold
         self.file_threshold = file_threshold
 
-        self.cache = cache
-        if cache:
-            self.cache_fp = cache_fp or Path(getenv("resources_dir")) / "anitousen_info.csv"
-
     @property
     def files(self) -> List[List[str]]:
         if not hasattr(self, "_files"):
-            if self.cache:
-                if self.cache_fp.exists():
-                    try:
-                        with open(self.cache_fp, "rb") as f:
-                            self._files = orjson.loads(f.read())
-                        if isinstance(self._files, dict) and len(self._files.keys()) > 0:
-                            return self._files
-                    except orjson.JSONDecodeError:
-                        pass
-                else:
-                    self.cache_fp.parent.mkdir(parents=True, exist_ok=True)
-
-            with open(self.torrent_fp, "rb") as f:
-                torrent = bencoder.decode(f.read())
-
+            torrent = bencodepy.decode_from_file(self.torrent_fp)
             paths = [[b.decode(encoding="utf-8") for b in f[b"path"]] for f in torrent[b"info"][b"files"]]
             self._files = {}
             for path in paths:
@@ -68,10 +47,6 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
                 if folder not in self._files:
                     self._files[folder] = []
                 self._files[folder].append(file)
-
-            if self.cache:
-                with open(self.cache_fp, "wb+") as f:
-                    f.write(orjson.dumps(self._files))
 
         return self._files
 
