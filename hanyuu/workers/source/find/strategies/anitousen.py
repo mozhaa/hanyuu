@@ -76,7 +76,13 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
         if file is None:
             return
 
-        return QItemSource(qitem_id=qitem_id, platform="torrent", path=folder + "/" + file, added_by=self.name)
+        return QItemSource(
+            qitem_id=qitem_id,
+            platform="torrent",
+            path=self.torrent_fp,
+            additional_path=folder + "/" + file,
+            added_by=self.name,
+        )
 
     def _title_score(self, anime: Anime, folder: str) -> float:
         possible_titles = [anime.shiki_title_ro, anime.shiki_title_en]

@@ -25,7 +25,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
             qitem_source = await session.get(QItemSource, qitem_source_id)
             session.expunge(qitem_source)
 
-        if qitem_source.platform not in ["youtube", "yt-dlp"]:
+        if qitem_source.platform != "yt-dlp":
             return False, None
 
         async def run() -> None:

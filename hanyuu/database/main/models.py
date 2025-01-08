@@ -111,6 +111,7 @@ class QItemSource(BaseWithID):
     qitem_id: Mapped[int] = mapped_column(ForeignKey("qitem.id"))
     platform: Mapped[str]
     path: Mapped[str]
+    additional_path: Mapped[Optional[str]]
     added_by: Mapped[str]
     local_fp: Mapped[Optional[str]]
 

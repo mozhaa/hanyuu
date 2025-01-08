@@ -16,6 +16,11 @@ class SourceSchema(BaseModel):
     id: int
     platform: str
     path: str
+    additional_path: Optional[str]
+
+    def model_post_init(self, __context):
+        if self.additional_path is not None and len(self.additional_path) == 0:
+            self.additional_path = None
 
 
 @router.post("", response_class=HTMLResponse)
@@ -23,7 +28,7 @@ async def create_source(request: Request, added_by: AddedByDep, session: Session
     qitem = await session.get(QItem, parent_id)
     if qitem is None:
         return no_such("qitem", id=parent_id)
-    source = QItemSource(qitem_id=qitem.id, platform="youtube", path="", added_by=added_by)
+    source = QItemSource(qitem_id=qitem.id, platform="yt-dlp", path="", added_by=added_by)
     session.add(source)
     await session.commit()
     await source.awaitable_attrs.timings

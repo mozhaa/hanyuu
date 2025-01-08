@@ -72,7 +72,7 @@ class YoutubeFindStrategy(SourceFindStrategy):
         scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         scores = [
             (
-                QItemSource(qitem=qitem, platform="youtube", path=link, added_by=self.name),
+                QItemSource(qitem=qitem, platform="yt-dlp", path=link, added_by=self.name),
                 score,
             )
             for link, score in scores
