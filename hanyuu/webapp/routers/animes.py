@@ -1,9 +1,10 @@
+import asyncio
 from typing import *
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
-from sqlalchemy import select
 from pydantic import BaseModel
+from sqlalchemy import select
 
 import hanyuu.webparse.anidb as anidb
 import hanyuu.webparse.shiki as shiki
@@ -43,20 +44,27 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
     if await session.get(Anime, mal_id) is not None:
         return already_exists("anime", mal_id=mal_id)
     shiki_anime = await shiki.get_anime(mal_id)
-    if shiki_anime.get("anidb_id", None) is None:
-        aod_anime = await session.get(AODAnime, mal_id)
-        if aod_anime is None:
+    aod_anime = await session.get(AODAnime, mal_id)
+    shiki_anime, aod_anime = await asyncio.gather(shiki.get_anime(mal_id), session.get(AODAnime, mal_id))
+
+    anidb_id = None
+    if aod_anime is None:
+        if shiki_anime.get("anidb_id", None) is None:
             raise RuntimeError(
                 f"Couldn't parse anidb_id by mal_id={mal_id} (missing from AOD, not in shiki external links)"
             )
-        shiki_anime["anidb_id"] = aod_anime.anidb_id
-    anidb_page = await anidb.Page.from_id(shiki_anime["anidb_id"])
+        else:
+            anidb_id = shiki_anime["anidb_id"]
+    else:
+        anidb_id = aod_anime.anidb_id
+
+    anidb_page = await anidb.Page.from_id(anidb_id)
     ratings_count = sum([score[1] for score in shiki_anime["scoresStats"]])
     rating = sum([score[0] * score[1] for score in shiki_anime["scoresStats"]]) / ratings_count
     statuses = dict([(status[0], status[1]) for status in shiki_anime["statusesStats"]])
     result = Anime(
         mal_id=mal_id,
-        anidb_id=shiki_anime["anidb_id"],
+        anidb_id=anidb_id,
         shiki_title_ro=shiki_anime["name"],
         shiki_title_ru=shiki_anime["russian"],
         shiki_title_en=shiki_anime["english"],
