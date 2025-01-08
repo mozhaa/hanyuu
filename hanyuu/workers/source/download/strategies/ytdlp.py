@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from urllib.parse import urlparse
 from typing import Awaitable, Callable, Optional, Tuple
 
 import yt_dlp
@@ -25,7 +26,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
             qitem_source = await session.get(QItemSource, qitem_source_id)
             session.expunge(qitem_source)
 
-        if qitem_source.platform != "yt-dlp":
+        if qitem_source.platform != "yt-dlp" or not is_youtube_url(qitem_source.path):
             return False, None
 
         async def run() -> None:
@@ -61,3 +62,15 @@ class YtDlpStrategy(SourceDownloadStrategy):
                     logger.warning(f"Download failed with return code {ret_code}")
 
         return True, run
+
+
+def is_youtube_url(url: str) -> bool:
+    parsed_url = urlparse(url)
+    last2_netloc = ".".join(parsed_url.netloc.split(".")[-2:])
+    if last2_netloc not in ["youtube.com", "youtu.be"]:
+        return False
+    if last2_netloc == "youtube.com" and parsed_url.path != "/watch":
+        return False
+    if last2_netloc == "youtu.be" and parsed_url.path.count("/") != 1:
+        return False
+    return True
