@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     db_host: str
     db_port: int
 
+    qbt_host: str
+    qbt_port: int
+    qbt_username: str
+    qbt_password: str
+
     resources_dir: str
     templates_dir: str
     static_dir: str
