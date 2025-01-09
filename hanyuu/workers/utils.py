@@ -174,3 +174,8 @@ def try_make_path_relative(path: Path) -> Path:
         return path.relative_to(Path.cwd())
     except ValueError:
         return path
+
+
+async def delayed[T](delay: float, wrapped: Callable[..., T], *args, **kwargs) -> T:
+    await asyncio.sleep(delay)
+    return await wrapped(*args, **kwargs)
