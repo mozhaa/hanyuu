@@ -17,3 +17,7 @@ class SourceDownloadStrategy(ABC):
         and, if yes, return async function, that does this.
         """
         pass
+
+
+class InvalidSource(Exception):
+    pass

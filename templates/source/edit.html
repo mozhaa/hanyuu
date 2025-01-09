@@ -10,6 +10,7 @@
             <label for="platform">Platform</label>
             <select name="platform">
                 <option value="yt-dlp" {{ 'selected' if source.platform == 'yt-dlp' else '' }}>yt-dlp</option>
+                <option value="local" {{ 'selected' if source.platform == 'local' else '' }}>Local</option>
                 <option value="torrent" {{ 'selected' if source.platform == 'torrent' else '' }}>Torrent</option>
             </select>
         </section>

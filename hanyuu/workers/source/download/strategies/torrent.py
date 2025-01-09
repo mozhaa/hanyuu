@@ -18,13 +18,9 @@ from hanyuu.database.main.models import QItemSource
 from hanyuu.webparse.utils import default_headers
 from hanyuu.workers.utils import FiledList
 
-from .base import SourceDownloadStrategy
+from .base import SourceDownloadStrategy, InvalidSource
 
 logger = logging.getLogger(__name__)
-
-
-class InvalidSource(Exception):
-    pass
 
 
 class TorrentDownloadingStrategy(SourceDownloadStrategy):
