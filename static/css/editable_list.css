@@ -216,3 +216,11 @@ form.unsaved.alias::before {
     top: 50%;
     transform: translateY(-50%);
 }
+
+.video-link {
+    width: max-content;
+    height: max-content;
+    top: 1em;
+    right: 1em;
+    position: absolute;
+}

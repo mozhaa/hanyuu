@@ -1,7 +1,7 @@
 from typing import *
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel
 
 from hanyuu.database.main.models import QItem, QItemSource
@@ -47,3 +47,11 @@ async def delete_source(session: SessionDep, id_: int) -> Any:
         return no_such("source", id=id_)
     await session.delete(source)
     await session.commit()
+
+
+@router.get("/{id_}/downloaded")
+async def get_source_video(session: SessionDep, id_: int) -> Any:
+    source = await session.get(QItemSource, id_)
+    if source.local_fp is None:
+        return Response(content=f"QItemSource with id={id_} has not been downloaded yet", status_code=404)
+    return FileResponse(source.local_fp)

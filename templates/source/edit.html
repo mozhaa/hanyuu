@@ -2,6 +2,10 @@
     <form>
         <input type="number" name="id" value="{{ source.id }}" style="display: none" readonly>
 
+        {% if source.local_fp is not none %}
+            <a class="video-link" href="{{ url_for('get_source_video', id_=source.id) }}">Watch</a>
+        {% endif %}
+
         <section>
             <label for="platform">Platform</label>
             <select name="platform">
