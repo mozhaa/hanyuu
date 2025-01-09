@@ -79,7 +79,7 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
         return QItemSource(
             qitem_id=qitem_id,
             platform="torrent",
-            path=self.torrent_fp,
+            path=str(self.torrent_fp),
             additional_path=folder + "/" + file,
             added_by=self.name,
         )
