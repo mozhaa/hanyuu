@@ -166,3 +166,11 @@ def worker_log_config(fp: str) -> None:
     Path(fp).parent.mkdir(parents=True, exist_ok=True)
 
     logging.config.dictConfig(CONFIG)
+
+
+def try_make_path_relative(path: Path) -> Path:
+    path = path.resolve()
+    try:
+        return path.relative_to(Path.cwd())
+    except ValueError:
+        return path
