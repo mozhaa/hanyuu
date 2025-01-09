@@ -4,9 +4,9 @@ import logging
 import logging.config
 import time
 from pathlib import Path
-from typing import Awaitable, Callable, List, Optional
+from typing import Any, Awaitable, Callable, List, Optional
 
-import aiofiles
+import orjson
 from filelock import FileLock
 
 logger = logging.getLogger(__name__)
@@ -18,21 +18,27 @@ class FiledList:
         self.lock = FileLock(fp + ".lock")
         self.readonly = readonly
 
-    async def __aenter__(self) -> List[int]:
+    async def __aenter__(self) -> List[Any]:
         self.lock.acquire()
-        async with aiofiles.open(self.fp, "a+") as f:
-            await f.seek(0, 0)
-            self.list = [int(x.strip()) for x in await f.readlines()]
-        if not self.readonly:
-            self.before = set(self.list)
-        return self.list
+        with open(self.fp, "ab+") as f:
+            f.seek(0, 0)
+            data = f.read()
 
-    async def __aexit__(self, *args, **kwargs) -> None:
-        if not self.readonly:
-            self.after = set(self.list)
-            logger.debug(f"{self.fp}, added: {self.after - self.before}, removed: {self.before - self.after}")
-            async with aiofiles.open(self.fp, "w+") as f:
-                await f.writelines([f"{x}\n" for x in self.list])
+        if len(data) == 0:
+            self.obj = []
+        else:
+            self.obj = orjson.loads(data)
+
+        if not isinstance(self.obj, list):
+            raise ValueError(f"{self.obj} is not a list!")
+        return self.obj
+
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
+        if not self.readonly and exc_type is None:
+            if not isinstance(self.obj, list):
+                raise ValueError(f"{self.obj} is not a list!")
+            with open(self.fp, "wb+") as f:
+                f.write(orjson.dumps(self.obj))
         self.lock.release()
 
 
