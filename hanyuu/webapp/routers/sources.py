@@ -37,7 +37,7 @@ async def create_source(request: Request, added_by: AddedByDep, session: Session
 
 @router.put("")
 async def update_source(session: SessionDep, added_by: AddedByDep, source: SourceSchema) -> Any:
-    return await update_model(session, added_by, QItemSource, source)
+    return await update_model(session, added_by, QItemSource, source, additional_kwargs={"invalid": False})
 
 
 @router.delete("/{id_}")

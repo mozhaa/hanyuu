@@ -30,11 +30,13 @@ async def update_model(
     added_by: Optional[AddedByDep],
     model_type: Type[Base],
     new_item: BaseModel,
+    additional_kwargs: Dict[str, Any] = {},
 ) -> Any:
     existing_item = await session.get(model_type, new_item.id)
     if existing_item is None:
         return no_such("source", id=new_item.id)
-    for k, v in new_item.model_dump().items():
+    additional_kwargs.update(new_item.model_dump())
+    for k, v in additional_kwargs.items():
         existing_item.__setattr__(k, v)
     if added_by is not None:
         # NOTE: replace author mark on update (not sure if it's correct decision)
