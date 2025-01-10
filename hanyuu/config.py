@@ -23,6 +23,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env")
 
+    ytdlp_cookiesfrombrowser: str
+
 
 @lru_cache
 def get_settings() -> Settings:

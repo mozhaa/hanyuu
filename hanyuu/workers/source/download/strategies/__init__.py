@@ -1,12 +1,12 @@
-from typing import List
+from typing import Dict
 
-from .base import SourceDownloadStrategy
+from .base import SourceDownloadStrategy, InvalidSource, TemporaryFailure
 from .local import LocalFileStrategy
 from .torrent import TorrentDownloadingStrategy
 from .ytdlp import YtDlpStrategy
 
-strategies: List[SourceDownloadStrategy] = [
-    LocalFileStrategy("strategy_local"),
-    TorrentDownloadingStrategy("strategy_torrent"),
-    # YtDlpStrategy("strategy_ytdlp"),
-]
+strategies: Dict[str, SourceDownloadStrategy] = {
+    "local": LocalFileStrategy("strategy_local"),
+    "torrent": TorrentDownloadingStrategy("strategy_torrent"),
+    "yt-dlp": YtDlpStrategy("strategy_ytdlp"),
+}

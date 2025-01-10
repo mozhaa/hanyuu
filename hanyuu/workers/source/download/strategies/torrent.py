@@ -4,7 +4,7 @@ import logging
 import re
 from enum import Enum, auto
 from pathlib import Path
-from typing import Awaitable, Callable, Optional, Tuple
+from typing import Optional, Tuple
 from urllib.parse import urlparse
 
 import aiofiles
@@ -18,55 +18,51 @@ from hanyuu.database.main.models import QItemSource
 from hanyuu.webparse.utils import default_headers
 from hanyuu.workers.utils import FiledList
 
-from .base import SourceDownloadStrategy, InvalidSource
+from .base import SourceDownloadStrategy, InvalidSource, TemporaryFailure
 
 logger = logging.getLogger(__name__)
 
 
 class TorrentDownloadingStrategy(SourceDownloadStrategy):
-    async def check(
-        self, qitem_source_id: int, download_dir: str
-    ) -> Tuple[bool, Optional[Callable[[], Awaitable[None]]]]:
+    async def run(self, qitem_source: QItemSource) -> None:
         worker_dir = Path(getenv("resources_dir")) / "workers" / "source" / "download" / self.name
+
         engine = await get_engine()
         async with engine.async_session() as session:
-            qitem_source = await session.get(QItemSource, qitem_source_id)
+            qitem_source.downloading = True
+            await session.commit()
 
-        if qitem_source.platform != "torrent":
-            return False, None
-
-        if qitem_source.additional_path is None:
-            raise InvalidSource("Torrent additional path is invalid")
-
-        torrent_path = TorrentPath(qitem_source.path)
-        if not torrent_path.is_valid():
-            raise InvalidSource("Torrent path is invalid")
-
-        # check if we already processed this source before
-        async with FiledList(str(worker_dir / "torrents.txt"), readonly=True) as dtfs:
-            if next(iter([True for dtf in dtfs if dtf["qitem_source_id"] == qitem_source_id]), False):
-                return False, None
-
-        # retrieve infohash from torrent
         try:
-            infohash = await torrent_path.infohash()
-        except aiohttp.ClientError:
-            raise InvalidSource("Torrent path is invalid")
-        except (ValueError, KeyError):
-            raise InvalidSource("Not a valid torrent")
+            if qitem_source.additional_path is None:
+                raise InvalidSource("Torrent additional path is invalid")
 
-        async def run() -> None:
+            torrent_path = TorrentPath(qitem_source.path)
+            if not torrent_path.is_valid():
+                raise InvalidSource("Torrent path is invalid")
+
+            # retrieve infohash from torrent
+            try:
+                infohash = await torrent_path.infohash()
+            except aiohttp.ClientError:
+                raise TemporaryFailure(f"Failed to download torrent by url={qitem_source.path}")
+            except (ValueError, KeyError):
+                raise InvalidSource("Failed to bdecode torrent file contents")
+
             # search for that torrent in qbt
             torrent = next(iter(self.qbt_client.torrents_info(torrent_hashes=infohash)), None)
             if torrent is None:
-                # if torrent was not added before, add it
-                self.qbt_client.torrents_add(
-                    urls=torrent_path.path,
-                    save_path=str((Path(getenv("resources_dir") / "videos" / "sources" / self.name)).resolve()),
-                    tags=f"hanyuu_{self.name}",
-                    category="hanyuu",
-                    is_paused=True,
-                )
+                try:
+                    # if torrent was not added before, add it
+                    self.qbt_client.torrents_add(
+                        urls=torrent_path.path,
+                        save_path=str((Path(getenv("resources_dir") / "videos" / "sources" / self.name)).resolve()),
+                        tags=f"hanyuu_{self.name}",
+                        category="hanyuu",
+                        is_paused=True,
+                    )
+                except (qbt.UnsupportedMediaType415Error, qbt.FileNotFoundError, qbt.TorrentFilePermissionError) as e:
+                    exc_type = TemporaryFailure if isinstance(e, qbt.TorrentFilePermissionError) else InvalidSource
+                    raise exc_type(f"qBitTorrent failed to add torrent by url={torrent_path.path} with exception: {e}")
 
                 # get new torrent info
                 torrent = next(iter(self.qbt_client.torrents_info(torrent_hashes=infohash)), None)
@@ -92,17 +88,24 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
             self.qbt_client.torrents_resume(infohash)
 
             # add torrent into list of downloading torrents
-            async with FiledList(str(worker_dir / "torrents.txt")) as dtfs:
+            async with FiledList(str(worker_dir / "downloading_torrents.json")) as dtfs:
                 dtfs.append(
                     {
                         "infohash": infohash,
                         "name": file_path,
-                        "qitem_source_id": qitem_source_id,
+                        "qitem_source_id": qitem_source.id,
                         "added_on": datetime.datetime.now(),
                     }
                 )
-
-        return True, run
+        except Exception as e:
+            async with engine.async_session() as session:
+                session.add(qitem_source)
+                qitem_source.downloading = False
+                await session.commit()
+            if isinstance(e, (qbt.NotFound404Error, qbt.Conflict409Error)):
+                raise TemporaryFailure(f"Exception from qBitTorrent occured: {e}")
+            # this should not happen, but if any other exceptions occured, it's an error
+            raise e
 
     @property
     def qbt_client(self) -> qbt.Client:
@@ -115,12 +118,11 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
             }
 
             self._qbt_client = qbt.Client(**conn_info)
-            self._qbt_client.auth_log_in()
+            try:
+                self._qbt_client.auth_log_in()
+            except qbt.APIConnectionError as e:
+                raise TemporaryFailure(f"Failed to auth to qBitTorrent: {e}")
         return self._qbt_client
-
-    def exit(self) -> None:
-        if hasattr(self, "_qbt_client"):
-            self._qbt_client.auth_log_out()
 
     async def find_file(self, files: qbt.TorrentFilesList, name: str) -> Tuple[Optional[int], Optional[str]]:
         target = Path(name)

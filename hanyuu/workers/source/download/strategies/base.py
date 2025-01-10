@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Awaitable, Callable, Optional, Tuple
+
+from hanyuu.database.main.models import QItemSource
 
 
 class SourceDownloadStrategy(ABC):
@@ -9,15 +10,23 @@ class SourceDownloadStrategy(ABC):
         self.name = name
 
     @abstractmethod
-    async def check(
-        self, qitem_source_id: int, download_dir: str
-    ) -> Tuple[bool, Optional[Callable[[], Awaitable[None]]]]:
+    async def run(self, qitem_source: QItemSource) -> None:
         """
-        Check if source can be downloaded with this strategy,
-        and, if yes, return async function, that does this.
+        Try to download source with this strategy.
+        Possible outcomes:
+
+        - source is invalid (raises InvalidSource)
+
+        - strategy temprorary failed, f.e. no internet access (raises TemporaryFailure)
+
+        - strategy successed
         """
         pass
 
 
 class InvalidSource(Exception):
+    pass
+
+
+class TemporaryFailure(Exception):
     pass

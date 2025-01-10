@@ -1,76 +1,68 @@
 import logging
 from pathlib import Path
-from urllib.parse import urlparse
-from typing import Awaitable, Callable, Optional, Tuple
 
 import yt_dlp
 
+from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItemSource
 
-from .base import SourceDownloadStrategy
+from .base import InvalidSource, SourceDownloadStrategy, TemporaryFailure
 
 logger = logging.getLogger(__name__)
 
 
 class YtDlpStrategy(SourceDownloadStrategy):
-    def __init__(self, name: str, n_attempts: int = 2) -> None:
-        super().__init__(name)
-        self.n_attempts = n_attempts
-
-    async def check(
-        self, qitem_source_id: int, download_dir: str
-    ) -> Tuple[bool, Optional[Callable[[], Awaitable[None]]]]:
+    async def run(self, qitem_source: QItemSource) -> None:
+        download_dir = Path(getenv("resources_dir")) / "videos" / "sources" / self.name
         engine = await get_engine(True)
         async with engine.async_session() as session:
-            qitem_source = await session.get(QItemSource, qitem_source_id)
-            session.expunge(qitem_source)
+            session.add(qitem_source)
+            qitem_source.downloading = True
+            await session.commit()
 
-        if qitem_source.platform != "yt-dlp" or not is_youtube_url(qitem_source.path):
-            return False, None
+        yt_dlp_error_code = None
 
-        async def run() -> None:
+        try:
             params = {
-                "outtmpl": f"{download_dir}/{qitem_source_id}.%(ext)s",
+                "logger": logger,
+                "outtmpl": f"{download_dir}/{qitem_source.id}.%(ext)s",
                 "format": "bv*[height=720]+ba/b[height=720]/"
                 "bv*[height>720][height<=1080]+ba/b[height>720][height<=1080]/bv*+ba/b",
             }
 
-            attempts = 1
-            ret_code = None
-            while attempts <= self.n_attempts:
-                logger.info(f"Attempt #{attempts}: trying to download {qitem_source.path}")
-                try:
-                    with yt_dlp.YoutubeDL(params=params) as ydl:
-                        ret_code = ydl.download(qitem_source.path)
-                    break
-                except yt_dlp.utils.DownloadError:
-                    attempts += 1
-                    logger.info("Download error occured")
+            # set cookies from browser option for age restricted videos
+            if getenv("ytdlp_cookiesfrombrowser") is not None:
+                params["cookiesfrombrowser"] = (getenv("ytdlp_cookiesfrombrowser"),)
 
-            if ret_code == 0:
-                local_fp = str(next(Path(download_dir).glob(f"{qitem_source_id}.*")).resolve())
-                logger.info(f"Download successed, filepath = {local_fp}")
-                async with engine.async_session() as session:
-                    session.add(qitem_source)
-                    qitem_source.local_fp = local_fp
-                    await session.commit()
+            with yt_dlp.YoutubeDL(params=params) as ydl:
+                yt_dlp_error_code = ydl.download(qitem_source.path)
+        except yt_dlp.utils.DownloadError as e:
+            if "Failed to extract any player response" in e.msg:
+                # probably internet connection error
+                exc_type = TemporaryFailure
+            elif "Sign in to confirm your age" in e.msg:
+                # need to pass cookies, because video is age restriced
+                exc_type = TemporaryFailure
+            elif "https://github.com/yt-dlp/yt-dlp/issues/7271" in e.msg:
+                # failed to extract cookies from browser, use firefox
+                exc_type = TemporaryFailure
             else:
-                if ret_code is None:
-                    logger.warning(f"Download failed after {self.n_attempts} attempts")
-                else:
-                    logger.warning(f"Download failed with return code {ret_code}")
+                # probably video is unavailable or invalid url
+                exc_type = InvalidSource
+            raise exc_type("yt-dlp failed with exception: " + e.msg)
+        finally:
+            # set downloading = False
+            engine = await get_engine(True)
+            async with engine.async_session() as session:
+                session.add(qitem_source)
+                qitem_source.downloading = False
+                if yt_dlp_error_code == 0:
+                    # download was successful, find downloaded video file
+                    local_fp = next(download_dir.glob(f"{qitem_source.id}.*"), None)
+                    if local_fp is not None:
+                        qitem_source.local_fp = str(local_fp)
+                await session.commit()
 
-        return True, run
-
-
-def is_youtube_url(url: str) -> bool:
-    parsed_url = urlparse(url)
-    last2_netloc = ".".join(parsed_url.netloc.split(".")[-2:])
-    if last2_netloc not in ["youtube.com", "youtu.be"]:
-        return False
-    if last2_netloc == "youtube.com" and parsed_url.path != "/watch":
-        return False
-    if last2_netloc == "youtu.be" and parsed_url.path.count("/") != 1:
-        return False
-    return True
+        if yt_dlp_error_code != 0:
+            raise TemporaryFailure(f"yt-dlp terminated with non-zero error_code={yt_dlp_error_code}")

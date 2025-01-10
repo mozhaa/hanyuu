@@ -15,9 +15,10 @@ class LazyEngine:
         self._async_session = async_sessionmaker(self._engine, class_=AsyncSession)
         self.connected = True
 
-    @property
-    def async_session(self) -> async_sessionmaker[AsyncSession]:
-        return self._async_session
+    def async_session(self, **kwargs) -> AsyncSession:
+        defaults = {"expire_on_commit": False}
+        defaults.update(kwargs)
+        return self._async_session(**defaults)
 
     async def create_tables(self) -> None:
         async with self._engine.begin() as conn:

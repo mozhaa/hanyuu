@@ -168,8 +168,12 @@ def worker_log_config(fp: str) -> None:
     logging.config.dictConfig(CONFIG)
 
 
-def try_make_path_relative(path: Path) -> Path:
+def try_make_path_relative(path: Path | str) -> Path:
+    if isinstance(path, str):
+        path = Path(path)
+
     path = path.resolve()
+
     try:
         return path.relative_to(Path.cwd())
     except ValueError:
