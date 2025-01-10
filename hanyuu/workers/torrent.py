@@ -32,7 +32,7 @@ def get_qbt_client() -> qbt.Client:
 
 async def check(strategy_name: str) -> None:
     worker_dir = Path(getenv("resources_dir")) / "workers" / "source" / "download" / strategy_name
-    async with FiledList(str(worker_dir / "torrents.txt")) as dtfs:
+    async with FiledList(str(worker_dir / "downloading_torrents.json")) as dtfs:
         hashes = set([t["infohash"] for t in dtfs])
         if len(hashes) == 0:
             return

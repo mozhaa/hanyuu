@@ -29,6 +29,7 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
 
         engine = await get_engine()
         async with engine.async_session() as session:
+            session.add(qitem_source)
             qitem_source.downloading = True
             await session.commit()
 

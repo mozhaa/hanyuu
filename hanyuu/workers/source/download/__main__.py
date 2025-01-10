@@ -71,6 +71,7 @@ async def run_loop(platform: str, strategy: SourceDownloadStrategy, wait_duratio
             try:
                 logger.info(f"Running strategy {strategy.name} on {source}")
                 await strategy.run(source)
+                logger.info(f"Strategy {strategy.name} ended with success (source_id={source.id})")
             except InvalidSource as e:
                 logger.warning(f"Source marked as invalid: {source}\n\tMessage: {e}")
                 async with engine.async_session() as session:
