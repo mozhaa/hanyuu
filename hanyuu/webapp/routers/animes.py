@@ -60,7 +60,11 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
 
     anidb_page = await anidb.Page.from_id(anidb_id)
     ratings_count = sum([score[1] for score in shiki_anime["scoresStats"]])
-    rating = sum([score[0] * score[1] for score in shiki_anime["scoresStats"]]) / ratings_count
+    rating = (
+        sum([score[0] * score[1] for score in shiki_anime["scoresStats"]]) / ratings_count
+        if ratings_count > 0
+        else None
+    )
     statuses = dict([(status[0], status[1]) for status in shiki_anime["statusesStats"]])
     result = Anime(
         mal_id=mal_id,
