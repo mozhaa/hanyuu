@@ -59,6 +59,7 @@ async def check(strategy_name: str) -> None:
                     source = await session.get(QItemSource, dtf["qitem_source_id"])
                     local_fp = try_make_path_relative(Path(torrents[dtf["infohash"]]["save_path"]) / Path(dtf["name"]))
                     source.local_fp = str(local_fp)
+                    source.downloading = False
                     await session.commit()
                 logger.info(f"{dtf["name"]} has been removed as it has been downloaded, local_fp='{local_fp}'")
             else:
