@@ -48,6 +48,6 @@ async def main(interval: float) -> None:
 if __name__ == "__main__":
     worker_log_config(str((worker_dir / ".log").resolve()))
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", type=float, default=1, help="interval in seconds between job starts")
+    parser.add_argument("-t", type=float, default=0, help="interval in seconds between job starts")
     args = parser.parse_args()
     asyncio.run(main(args.t))
