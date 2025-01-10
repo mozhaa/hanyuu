@@ -106,6 +106,7 @@ async def clear_worse_sources() -> None:
                 select(QItemSource.id)
                 .join(best_sources, best_sources.qitem_id == QItemSource.qitem_id)
                 .where(QItemSource.id != best_sources.id)
+                .where(QItemSource.local_fp.isnot(None))
             )
         ).all()
 
