@@ -3,11 +3,13 @@ import logging
 from pathlib import Path
 from typing import List, Tuple, Type
 
-from sqlalchemy import delete, label, select
+from sqlalchemy import case, delete, update, label, literal_column, select
+from sqlalchemy.orm import aliased
 
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import *
+from hanyuu.workers.source.find.strategies import strategies as finding_strategies
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +75,46 @@ async def delete_duplicated_quizparts() -> None:
             await session.commit()
 
 
+async def clear_worse_sources() -> None:
+    engine = await get_engine()
+    f_strategies = ["manual"] + [s.name for s in finding_strategies]
+    async with engine.async_session() as session:
+        best_sources = aliased(
+            QItemSource,
+            select(
+                QItemSource,
+                label(
+                    "prio",
+                    case(
+                        *[(QItemSource.added_by == sname, i) for i, sname in enumerate(f_strategies)],
+                        else_=len(f_strategies),
+                    ),
+                ),
+            )
+            .distinct(QItemSource.qitem_id)
+            .where(QItemSource.invalid.is_(False))
+            .order_by(
+                QItemSource.qitem_id,
+                literal_column("prio"),
+                QItemSource.updated_at.desc(),
+            )
+            .subquery(),
+        )
+
+        ids_to_clear = (
+            await session.scalars(
+                select(QItemSource.id)
+                .join(best_sources, best_sources.qitem_id == QItemSource.qitem_id)
+                .where(QItemSource.id != best_sources.id)
+            )
+        ).all()
+
+        await session.execute(update(QItemSource).where(QItemSource.id.in_(ids_to_clear)).values(local_fp=None))
+        await session.commit()
+
+    logger.info(f"Cleared videos for sources with ids={ids_to_clear}")
+
+
 async def cleanup() -> None:
     await delete_duplicated_quizparts()
 
@@ -82,6 +124,8 @@ async def cleanup() -> None:
         source_files = (
             await session.execute(select(QItemSource.id, QItemSource.local_fp).where(QItemSource.local_fp.isnot(None)))
         ).all()
+
+    await clear_worse_sources()
 
     videos_dir = Path(getenv("resources_dir")) / "videos"
     await delete_invalid_records(source_files, QItemSource)
