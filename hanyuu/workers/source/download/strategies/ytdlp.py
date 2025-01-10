@@ -56,6 +56,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
             engine = await get_engine(True)
             async with engine.async_session() as session:
                 session.add(qitem_source)
+                await session.refresh(qitem_source)
                 qitem_source.downloading = False
                 if yt_dlp_error_code == 0:
                     # download was successful, find downloaded video file
