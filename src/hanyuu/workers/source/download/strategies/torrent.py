@@ -56,12 +56,12 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
                     # if torrent was not added before, add it
                     self.qbt_client.torrents_add(
                         urls=torrent_path.path,
-                        save_path=str((Path(getenv("resources_dir") / "videos" / "sources" / self.name)).resolve()),
+                        save_path=str((Path(getenv("resources_dir")) / "videos" / "sources" / self.name).resolve()),
                         tags=f"hanyuu_{self.name}",
                         category="hanyuu",
                         is_paused=True,
                     )
-                except (qbt.UnsupportedMediaType415Error, qbt.FileNotFoundError, qbt.TorrentFilePermissionError) as e:
+                except (qbt.UnsupportedMediaType415Error, qbt.TorrentFileNotFoundError, qbt.TorrentFilePermissionError) as e:
                     exc_type = TemporaryFailure if isinstance(e, qbt.TorrentFilePermissionError) else InvalidSource
                     raise exc_type(f"qBitTorrent failed to add torrent by url={torrent_path.path} with exception: {e}")
 
