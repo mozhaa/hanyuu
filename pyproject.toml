@@ -1,36 +1,51 @@
-[tool.poetry]
+[project]
 name = "hanyuu"
 version = "1.0.0"
 description = ""
-authors = ["mozhaa <mozhay2005@gmail.com>"]
 readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiohttp>=3.11.7",
+    "sqlalchemy[aiosqlite,asyncio]>=2.0.36",
+    "greenlet>=3.1.1",
+    "pydantic-settings>=2.6.1",
+    "fastapi[standard]>=0.115.5",
+    "asyncpg>=0.30.0",
+    "orjson>=3.10.12",
+    "rapidfuzz>=3.10.1",
+    "filelock>=3.16.1",
+    "aiofiles>=24.1.0",
+    "pyquery>=2.0.1",
+    "youtube-search-python>=1.6.6",
+    "ffmpeg-python>=0.2.0",
+    "yt-dlp>=2024.12.23",
+    "httpx<0.28.0",
+    "qbittorrent-api>=2024.12.71",
+    "bencodepy>=0.9.5",
+]
 
-[tool.poetry.dependencies]
-python = "^3.13"
-aiohttp = "^3.11.7"
-sqlalchemy = "^2.0.36"
-aiosqlite = "^0.20.0"
-greenlet = "^3.1.1"
-pydantic-settings = "^2.6.1"
-fastapi = {extras = ["standart"], version = "^0.115.5"}
-asyncpg = "^0.30.0"
-orjson = "^3.10.12"
-rapidfuzz = "^3.10.1"
-filelock = "^3.16.1"
-aiofiles = "^24.1.0"
-pyquery = "^2.0.1"
-youtube-search-python = "^1.6.6"
-ffmpeg-python = "^0.2.0"
-yt-dlp = "^2024.12.23"
-httpx = "<0.28.0"
-qbittorrent-api = "^2024.12.71"
-bencodepy = "^0.9.5"
-
-
-[tool.poetry.group.dev.dependencies]
-ipykernel = "^6.29.5"
-termcolor = "^2.5.0"
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "termcolor>=2.5.0",
+    "ruff>=0.14.4",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.8.14,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "W",
+    "B",
+    "Q",
+    "I",
+    "RUF",
+    "FAST",
+]
+
+[tool.ruff]
+line-length = 120
