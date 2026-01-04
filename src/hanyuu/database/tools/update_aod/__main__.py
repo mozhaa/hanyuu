@@ -11,15 +11,11 @@ from hanyuu.webparse.utils import default_headers
 
 mal_regexp = re.compile("^https://myanimelist.net/anime/([0-9]+)$")
 anidb_regexp = re.compile("^https://anidb.net/anime/([0-9]+)")
-url = "https://raw.githubusercontent.com/manami-project/anime-offline-database/master/anime-offline-database-minified.json"
 
 
 async def update() -> None:
-    print("Downloading .json...", end=" ")
-    async with ClientSession() as session:
-        async with session.get(url, headers=default_headers) as response:
-            raw_json = await response.read()
-            print(f"downloaded {len(raw_json)} bytes")
+    with open("resources/anime-offline-database-minified.json", "r") as f:
+        raw_json = f.read()
     data = orjson.loads(raw_json)
 
     print(f"Database version from {data["lastUpdate"]}")
