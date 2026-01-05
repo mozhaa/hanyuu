@@ -1,4 +1,4 @@
-from typing import *
+from typing import Annotated, AsyncIterator
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession

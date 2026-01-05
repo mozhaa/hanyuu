@@ -18,7 +18,7 @@ from hanyuu.database.main.models import QItemSource
 from hanyuu.webparse.utils import default_headers
 from hanyuu.workers.utils import FiledList
 
-from .base import SourceDownloadStrategy, InvalidSource, TemporaryFailure
+from .base import InvalidSource, SourceDownloadStrategy, TemporaryFailure
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +61,11 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
                         category="hanyuu",
                         is_paused=True,
                     )
-                except (qbt.UnsupportedMediaType415Error, qbt.TorrentFileNotFoundError, qbt.TorrentFilePermissionError) as e:
+                except (
+                    qbt.UnsupportedMediaType415Error,
+                    qbt.TorrentFileNotFoundError,
+                    qbt.TorrentFilePermissionError,
+                ) as e:
                     exc_type = TemporaryFailure if isinstance(e, qbt.TorrentFilePermissionError) else InvalidSource
                     raise exc_type(f"qBitTorrent failed to add torrent by url={torrent_path.path} with exception: {e}")
 

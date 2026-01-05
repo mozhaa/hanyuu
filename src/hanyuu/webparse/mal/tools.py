@@ -1,8 +1,9 @@
-from typing import *
+from typing import Any
 from urllib.parse import quote_plus
-from ..utils import default_headers
 
 from aiohttp import ClientSession
+
+from ..utils import default_headers
 
 
 async def search(query: str) -> Any:

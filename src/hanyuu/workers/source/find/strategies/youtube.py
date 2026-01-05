@@ -1,7 +1,7 @@
 import logging
 import re
 from datetime import datetime
-from typing import *
+from typing import Any, Callable, Optional
 
 from rapidfuzz import fuzz
 from youtubesearchpython.__future__ import VideosSearch
@@ -20,9 +20,9 @@ class YoutubeFindStrategy(SourceFindStrategy):
         name: str,
         title_algorithm: Callable[[str, str], float] = fuzz.token_ratio,
         score_threshold: float = 0.7,
-        possible_durations: List[float] = [90, 150],
-        helpers: List[str] = ["Creditless", "4K", "HD", "1080p"],
-        negative_helpers: List[str] = ["Cover", "AMV", "Full", "Lyrics"],
+        possible_durations: list[float] = [90, 150],
+        helpers: list[str] = ["Creditless", "4K", "HD", "1080p"],
+        negative_helpers: list[str] = ["Cover", "AMV", "Full", "Lyrics"],
     ) -> None:
         super().__init__(name)
         self.title_algorithm = title_algorithm
@@ -47,7 +47,7 @@ class YoutubeFindStrategy(SourceFindStrategy):
             return source
         logger.info(f"Top score: {score} < {self.score_threshold}, link={source.path}, failure")
 
-    async def get_sorted_sources(self, qitem_id: int) -> List[Tuple[QItemSource, float]]:
+    async def get_sorted_sources(self, qitem_id: int) -> list[tuple[QItemSource, float]]:
         engine = await get_engine(True)
         async with engine.async_session() as session:
             qitem = await session.get(QItem, qitem_id)
@@ -66,7 +66,7 @@ class YoutubeFindStrategy(SourceFindStrategy):
                 score = self._score(video, query)
                 link = video["link"]
                 if link not in scores:
-                    logger.debug(f"Title='{video["title"]}', link={link}, score={score:.3f}")
+                    logger.debug(f"Title='{video['title']}', link={link}, score={score:.3f}")
                 scores[link] = max(scores.get(link, 0), score)
 
         scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -93,7 +93,7 @@ class YoutubeFindStrategy(SourceFindStrategy):
         s = parse_time_as_seconds(duration)
         return max([assymetrical_similarity(s, d) for d in self.possible_durations])
 
-    def _score(self, video: Dict[str, Any], query: str) -> float:
+    def _score(self, video: dict[str, Any], query: str) -> float:
         negative_helpers_score = self._negative_helpers_score(video["title"])
         if negative_helpers_score > 0:
             return 0
@@ -144,14 +144,14 @@ def preprocess(title: str, num_w: int = 1) -> str:
     title = re.sub("\\bseason\\b +([0-9]+)", "s\\1", title)
     numerals = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"]
     for i, s in enumerate(numerals):
-        title = re.sub(f"{s} +\\bseason\\b", f"s{i+1}", title)
+        title = re.sub(f"{s} +\\bseason\\b", f"s{i + 1}", title)
     if num_w > 1:
         title = re.sub("[0-9]", "\\g<0>" * num_w, title)
     title = re.sub(" {2,}", " ", title)
     return title
 
 
-def helpers_score(helpers: List[str], s: str) -> float:
+def helpers_score(helpers: list[str], s: str) -> float:
     return len(re.findall("|".join([re.escape(w) for w in helpers]), s)) / len(helpers)
 
 

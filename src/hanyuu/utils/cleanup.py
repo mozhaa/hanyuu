@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import List, Tuple, Type
 
-from sqlalchemy import case, delete, update, label, literal_column, select
+from sqlalchemy import case, delete, label, literal_column, select, update
 from sqlalchemy.orm import aliased
 
 from hanyuu.config import getenv

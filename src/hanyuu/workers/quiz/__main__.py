@@ -62,7 +62,7 @@ class MemoryRandomPicker(RandomPicker):
         choices -= set(self.memory)
         choice = random.choice(list(choices))
         self.memory.append(choice)
-        self.memory = self.memory[-self.memory_size:]
+        self.memory = self.memory[-self.memory_size :]
         return choice
 
 

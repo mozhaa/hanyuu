@@ -1,5 +1,5 @@
 import re
-from typing import *
+from typing import Self
 
 from pyquery import PyQuery as pq
 
@@ -24,7 +24,7 @@ class Page:
 
     @property
     @default([])
-    def qitems(self) -> List[QItem]:
+    def qitems(self) -> list[QItem]:
         qitems = []
         counters = {}
         anidb_ids = set()

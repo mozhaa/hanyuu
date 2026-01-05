@@ -1,7 +1,8 @@
-import ffmpeg
-from typing import Iterable
-from tempfile import NamedTemporaryFile
 from pathlib import Path
+from tempfile import NamedTemporaryFile
+from typing import Iterable
+
+import ffmpeg
 
 
 def cat(videos: Iterable[str], output_fp: str) -> None:

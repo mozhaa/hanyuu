@@ -43,7 +43,7 @@ async def check(strategy_name: str) -> None:
         new_dtfs = []
         for dtf in dtfs:
             if dtf["infohash"] not in torrents:
-                logger.warning(f"{dtf["name"]} has been removed as it's not in QBT anymore")
+                logger.warning(f"{dtf['name']} has been removed as it's not in QBT anymore")
                 continue
 
             # get torrent contents from qbt
@@ -52,7 +52,7 @@ async def check(strategy_name: str) -> None:
             # find file we need
             file = next(iter([f for f in files if f["name"] == dtf["name"]]), None)
             if file is None:
-                logger.warning(f"{dtf["name"]} has been removed as it has invalid file name")
+                logger.warning(f"{dtf['name']} has been removed as it has invalid file name")
             elif file["progress"] == 1:
                 engine = await get_engine()
                 async with engine.async_session() as session:
@@ -61,7 +61,7 @@ async def check(strategy_name: str) -> None:
                     source.local_fp = str(local_fp)
                     source.downloading = False
                     await session.commit()
-                logger.info(f"{dtf["name"]} has been removed as it has been downloaded, local_fp='{local_fp}'")
+                logger.info(f"{dtf['name']} has been removed as it has been downloaded, local_fp='{local_fp}'")
             else:
                 new_dtfs.append(dtf)
 

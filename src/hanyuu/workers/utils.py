@@ -79,7 +79,6 @@ class StrategyRunner:
         select_job: Callable[[], Optional[Awaitable[None]]],
         synchronized: bool = True,
     ) -> None:
-
         parser = argparse.ArgumentParser(
             "Strategies runner",
             "Concurrently run strategies",

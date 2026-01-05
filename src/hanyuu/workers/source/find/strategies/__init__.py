@@ -1,9 +1,9 @@
 from typing import List
 
+from .anitousen import AniTousenTorrentStrategy
 from .base import SourceFindStrategy
 from .shiki import ShikiAttachmentsStrategy
 from .youtube import YoutubeFindStrategy
-from .anitousen import AniTousenTorrentStrategy
 
 strategies: List[SourceFindStrategy] = [
     AniTousenTorrentStrategy("strategy_anitousen"),

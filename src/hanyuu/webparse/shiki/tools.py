@@ -1,9 +1,10 @@
-from typing import *
+from pathlib import PurePosixPath
+from typing import Any, Optional
+from urllib.parse import parse_qsl, urlparse
 
 import orjson
 from aiohttp import ClientSession
-from urllib.parse import urlparse, parse_qsl
-from pathlib import PurePosixPath
+
 from ..utils import default_headers
 
 graphql_url = "https://shikimori.one/api/graphql"
@@ -17,13 +18,13 @@ graphql_args = (
 )
 
 
-def process_anime(anime: Dict[str, Any]) -> Dict[str, Any]:
-    def set_default(obj: Dict[str, Any], key: str, value: Any) -> Dict[str, Any]:
+def process_anime(anime: dict[str, Any]) -> dict[str, Any]:
+    def set_default(obj: dict[str, Any], key: str, value: Any) -> dict[str, Any]:
         if obj.get(key, None) is None:
             obj[key] = value
         return obj
 
-    def set_defaults(obj: Dict[str, Any], defaults: Dict[str, Any]) -> Dict[str, Any]:
+    def set_defaults(obj: dict[str, Any], defaults: dict[str, Any]) -> dict[str, Any]:
         for key, value in defaults.items():
             obj = set_default(obj, key, value)
         return obj
@@ -59,7 +60,7 @@ def process_anime(anime: Dict[str, Any]) -> Dict[str, Any]:
     return anime
 
 
-async def get_anime(mal_id: int) -> Optional[Dict[str, Any]]:
+async def get_anime(mal_id: int) -> Optional[dict[str, Any]]:
     query = f'{{ animes(ids: "{mal_id}", limit: 1) {{ {graphql_args} }} }}'
     body = {"operationName": None, "query": query, "variables": {}}
     async with ClientSession(headers=default_headers) as session:
@@ -69,7 +70,7 @@ async def get_anime(mal_id: int) -> Optional[Dict[str, Any]]:
     return process_anime(animes[0]) if len(animes) > 0 else None
 
 
-async def search(query: str, limit: int = 10) -> List[Dict[str, Any]]:
+async def search(query: str, limit: int = 10) -> list[dict[str, Any]]:
     query = f'{{ animes(search: "{query}", limit: {limit}, rating: "!rx") {{ {graphql_args} }} }}'
     body = {"operationName": None, "query": query, "variables": {}}
     async with ClientSession(headers=default_headers) as session:

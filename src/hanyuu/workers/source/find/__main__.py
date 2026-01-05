@@ -1,8 +1,8 @@
 import argparse
 import asyncio
 import logging
-import time
 import random
+import time
 from pathlib import Path
 
 from sqlalchemy import select
@@ -11,7 +11,7 @@ from sqlalchemy.orm import aliased
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItem, QItemSource
-from hanyuu.workers.utils import FiledList, worker_log_config, delayed
+from hanyuu.workers.utils import FiledList, delayed, worker_log_config
 
 from .strategies import SourceFindStrategy, strategies
 

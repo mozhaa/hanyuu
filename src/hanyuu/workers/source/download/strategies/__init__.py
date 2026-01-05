@@ -1,6 +1,6 @@
 from typing import Dict
 
-from .base import SourceDownloadStrategy, InvalidSource, TemporaryFailure
+from .base import InvalidSource, SourceDownloadStrategy, TemporaryFailure
 from .local import LocalFileStrategy
 from .torrent import TorrentDownloadingStrategy
 from .ytdlp import YtDlpStrategy

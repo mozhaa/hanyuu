@@ -7,7 +7,7 @@ from sqlalchemy import case, delete, label, literal_column, select
 
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
-from hanyuu.database.main.models import QItem, QItemDifficulty, QItemSource, QItemSourceTiming, QuizPart, Category
+from hanyuu.database.main.models import Category, QItem, QItemDifficulty, QItemSource, QItemSourceTiming, QuizPart
 from hanyuu.video.videomakers import VideoMakerBase, styles
 from hanyuu.workers.difficulty.strategies import strategies as _d_strategies
 from hanyuu.workers.source.find.strategies import strategies as _s_strategies

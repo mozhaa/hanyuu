@@ -1,11 +1,11 @@
 from datetime import datetime, time
-from typing import *
+from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, field_validator
 
-from hanyuu.database.main.models import QItemSourceTiming, QItemSource
+from hanyuu.database.main.models import QItemSource, QItemSourceTiming
 from hanyuu.webapp.deps import AddedByDep, SessionDep
 
 from .utils import no_such, templates, update_model

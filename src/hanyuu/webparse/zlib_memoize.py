@@ -1,7 +1,7 @@
 import zlib
 from datetime import datetime
 from functools import wraps
-from typing import *
+from typing import Awaitable, Callable, Optional
 
 from sqlalchemy import LargeBinary, func, null, select
 from sqlalchemy.ext.asyncio import (
@@ -31,8 +31,8 @@ def zlib_memoize(filename: str, key_creator: Callable[..., str], encoding: str =
     """Cache with unbounded storage and zlib compression"""
 
     def wrapper(user_function: Callable[..., Awaitable[Optional[str]]]) -> Callable[..., Awaitable[Optional[str]]]:
-        engine: AsyncEngine = None
-        async_session: async_sessionmaker[AsyncSession] = None
+        engine: Optional[AsyncEngine] = None
+        async_session: Optional[async_sessionmaker[AsyncSession]] = None
 
         @wraps(user_function)
         async def wrapped(*args, **kwargs) -> Optional[str]:

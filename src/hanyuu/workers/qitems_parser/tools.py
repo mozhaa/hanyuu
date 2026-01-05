@@ -1,6 +1,6 @@
 import asyncio
 from argparse import Namespace
-from typing import *
+from typing import Optional
 
 import aiofiles
 from filelock import FileLock
@@ -20,7 +20,7 @@ class ProcessedList:
         async with aiofiles.open(self.filename, "w+"):
             pass
 
-    async def get(self) -> List[int]:
+    async def get(self) -> list[int]:
         await self._create_file()
         async with aiofiles.open(self.filename, "r") as f:
             return [int(t.strip()) for t in await f.readlines()]
@@ -28,7 +28,7 @@ class ProcessedList:
     async def is_present(self, anidb_id: int) -> bool:
         return anidb_id in await self.get()
 
-    async def insert(self, anidb_id: int) -> List[int]:
+    async def insert(self, anidb_id: int) -> list[int]:
         if not await self.is_present(anidb_id):
             async with aiofiles.open(self.filename, "a+") as f:
                 await f.write(f"{anidb_id}\n")
@@ -93,7 +93,7 @@ async def start(args: Namespace) -> None:
     global worker_dir, engine, processed_list
 
     engine = await get_engine()
-    worker_dir = f"{getenv("resources_dir")}/workers/qitems_parser"
+    worker_dir = f"{getenv('resources_dir')}/workers/qitems_parser"
     processed_list = ProcessedList(f"{worker_dir}/processed.txt")
     queue = Queue(f"{worker_dir}/queue.txt", f"{worker_dir}/queue.lock")
 

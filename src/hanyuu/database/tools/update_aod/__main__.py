@@ -2,12 +2,10 @@ import asyncio
 import re
 
 import orjson
-from aiohttp import ClientSession
 from sqlalchemy import delete
 
 import hanyuu.database.main as main
 from hanyuu.database.main.models import AnimeType, AODAnime, ReleaseSeason, Status
-from hanyuu.webparse.utils import default_headers
 
 mal_regexp = re.compile("^https://myanimelist.net/anime/([0-9]+)$")
 anidb_regexp = re.compile("^https://anidb.net/anime/([0-9]+)")
@@ -18,7 +16,7 @@ async def update() -> None:
         raw_json = f.read()
     data = orjson.loads(raw_json)
 
-    print(f"Database version from {data["lastUpdate"]}")
+    print(f"Database version from {data['lastUpdate']}")
     print("Processing items...", end=" ")
     animes = []
     for item in data["data"]:

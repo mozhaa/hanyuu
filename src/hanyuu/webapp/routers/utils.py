@@ -1,4 +1,4 @@
-from typing import *
+from typing import Any, Optional, Type
 
 from fastapi import APIRouter
 from fastapi.responses import RedirectResponse, Response
@@ -30,11 +30,13 @@ async def update_model(
     added_by: Optional[AddedByDep],
     model_type: Type[Base],
     new_item: BaseModel,
-    additional_kwargs: Dict[str, Any] = {},
+    additional_kwargs: Optional[dict[str, Any]] = None,
 ) -> Any:
     existing_item = await session.get(model_type, new_item.id)
     if existing_item is None:
         return no_such("source", id=new_item.id)
+    if additional_kwargs is None:
+        additional_kwargs = {}
     additional_kwargs.update(new_item.model_dump())
     for k, v in additional_kwargs.items():
         existing_item.__setattr__(k, v)
