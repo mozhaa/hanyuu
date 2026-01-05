@@ -15,7 +15,7 @@ import qbittorrentapi as qbt
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItemSource
-from hanyuu.webparse.utils import default_headers
+from hanyuu.utils import default_headers
 from hanyuu.workers.utils import FiledList
 
 from .base import InvalidSource, SourceDownloadStrategy, TemporaryFailure

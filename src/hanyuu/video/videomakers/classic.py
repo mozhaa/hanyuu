@@ -9,7 +9,7 @@ import ffmpeg
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import Category, QItemDifficulty, QItemSourceTiming
-from hanyuu.webparse.utils import default_headers
+from hanyuu.utils import default_headers
 
 from .base import VideoMakerBase
 
