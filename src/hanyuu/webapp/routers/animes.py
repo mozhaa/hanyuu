@@ -136,6 +136,7 @@ async def update_alias(session: SessionDep, obj: AnimeAliasScheme) -> Any:
     if anime is None:
         return Response(content=f"Anime with id={obj.id} does not exist", status_code=400)
     if len(obj.alias) == 0:
-        obj.alias = None
-    anime.alias = obj.alias
+        anime.alias = None
+    else:
+        anime.alias = obj.alias
     await session.commit()
