@@ -22,6 +22,7 @@ dependencies = [
     "httpx<0.28.0",
     "qbittorrent-api>=2024.12.71",
     "bencodepy>=0.9.5",
+    "anime-utils",
 ]
 
 [dependency-groups]
@@ -46,6 +47,9 @@ select = [
     "RUF",
     "FAST",
 ]
+
+[tool.uv.sources]
+anime-utils = { git = "https://github.com/mozhaa/anime-utils.git", rev = "v1.1.1" }
 
 [tool.ruff]
 line-length = 120
