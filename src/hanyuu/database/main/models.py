@@ -75,8 +75,8 @@ class Anime(Base):
     shiki_dropped: Mapped[int] = mapped_column(default=0)
     shiki_on_hold: Mapped[int] = mapped_column(default=0)
     shiki_age_rating: Mapped[Optional[str]]
-    shiki_aired_on: Mapped[Optional[IncompleteDate]] = mapped_column(IncompleteDate, nullable=True)
-    shiki_released_on: Mapped[Optional[IncompleteDate]] = mapped_column(IncompleteDate, nullable=True)
+    shiki_aired_on: Mapped[Optional[str]]
+    shiki_released_on: Mapped[Optional[str]]
     shiki_videos: Mapped[List[List[str]]]
     shiki_synonyms: Mapped[List[str]]
     shiki_genres: Mapped[List[str]]

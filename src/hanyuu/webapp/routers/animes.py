@@ -76,13 +76,14 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
             song_artist=song["staff"].get("Vocals/Performed by (歌)", ""),
         )
         qitems.append(qitem)
-    ratings_count = sum([score[1] for score in shiki_anime["scoresStats"]])
+    ratings_count = sum(shiki_anime["scores_stats"].values())
+    print(shiki_anime["scores_stats"])
     rating = (
-        sum([score[0] * score[1] for score in shiki_anime["scoresStats"]]) / ratings_count
+        sum([score * count for score, count in shiki_anime["scores_stats"].items()]) / ratings_count
         if ratings_count > 0
         else None
     )
-    statuses = dict([(status[0], status[1]) for status in shiki_anime["statusesStats"]])
+    statuses = shiki_anime["statuses_stats"]
     result = Anime(
         mal_id=mal_id,
         anidb_id=anidb_id,
@@ -92,8 +93,8 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
         shiki_title_jp=shiki_anime["japanese"],
         shiki_url=shiki_anime["url"],
         shiki_status=shiki_anime["status"],
-        shiki_poster_url=shiki_anime["poster"]["originalUrl"],
-        shiki_poster_thumb_url=shiki_anime["poster"]["mainUrl"],
+        shiki_poster_url=shiki_anime["poster_original_url"],
+        shiki_poster_thumb_url=shiki_anime["poster_main_url"],
         shiki_episodes=shiki_anime["episodes"],
         shiki_duration=shiki_anime["duration"],
         shiki_rating=rating,
@@ -104,11 +105,11 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
         shiki_dropped=statuses["dropped"],
         shiki_on_hold=statuses["on_hold"],
         shiki_age_rating=shiki_anime["rating"],
-        shiki_aired_on=shiki_anime["airedOn"],
-        shiki_released_on=shiki_anime["releasedOn"],
+        shiki_aired_on=shiki_anime["aired_on"],
+        shiki_released_on=shiki_anime["released_on"],
         shiki_videos=[v.values() for v in shiki_anime["videos"]],
         shiki_synonyms=shiki_anime["synonyms"],
-        shiki_genres=[g["name"] for g in shiki_anime["genres"]],
+        shiki_genres=shiki_anime["genres"],
         qitems=qitems,
     )
     session.add(result)
