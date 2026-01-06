@@ -1,14 +1,13 @@
-import asyncio
 from typing import Any
 
+from anime_utils.clients.anidb import AniDBScraper
+from anime_utils.clients.shikimori import ShikimoriClient
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from pydantic import BaseModel
 from sqlalchemy import select
 
-import hanyuu.webparse.anidb as anidb
-import hanyuu.webparse.shiki as shiki
-from hanyuu.database.main.models import Anime, AODAnime
+from hanyuu.database.main.models import Anime, AODAnime, Category, QItem
 from hanyuu.webapp.deps import SessionDep
 
 from .utils import already_exists, no_such, templates
@@ -27,11 +26,12 @@ async def read_animes(request: Request, session: SessionDep, page: int = 1) -> A
 
 @router.get("/search", response_class=JSONResponse)
 async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
-    results = await shiki.search(query=q, limit=30)
-    result_ids = [int(item["id"]) for item in results]
+    async with ShikimoriClient() as client:
+        results = await client.search(query=q, limit=30)
+    result_ids = [item["id"] for item in results]
     already_exist = (await session.scalars(select(Anime.mal_id).where(Anime.mal_id.in_(result_ids)))).all()
     for result in results:
-        result["added"] = int(result["id"]) in already_exist
+        result["added"] = result["id"] in already_exist
     return templates.TemplateResponse(
         request=request,
         name="anime/search.html",
@@ -43,9 +43,9 @@ async def search_animes(session: SessionDep, request: Request, q: str) -> Any:
 async def create_anime(session: SessionDep, mal_id: int) -> Any:
     if await session.get(Anime, mal_id) is not None:
         return already_exists("anime", mal_id=mal_id)
-    shiki_anime = await shiki.get_anime(mal_id)
+    async with ShikimoriClient() as shiki_client:
+        shiki_anime = await shiki_client.get_anime(mal_id)
     aod_anime = await session.get(AODAnime, mal_id)
-    shiki_anime, aod_anime = await asyncio.gather(shiki.get_anime(mal_id), session.get(AODAnime, mal_id))
 
     anidb_id = None
     if aod_anime is None:
@@ -58,7 +58,24 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
     else:
         anidb_id = aod_anime.anidb_id
 
-    anidb_page = await anidb.Page.from_id(anidb_id)
+    async with AniDBScraper() as anidb_client:
+        songs = await anidb_client.get_songs(anidb_id)
+    qitems = []
+    for song in songs:
+        if song["category"] == "opening":
+            category = Category.Opening
+        elif song["category"] == "ending":
+            category = Category.Ending
+        else:
+            continue
+        qitem = QItem(
+            anime_id=mal_id,
+            category=category,
+            number=song["number"],
+            song_name=song["song_name"],
+            song_artist=song["staff"].get("Vocals/Performed by (歌)", ""),
+        )
+        qitems.append(qitem)
     ratings_count = sum([score[1] for score in shiki_anime["scoresStats"]])
     rating = (
         sum([score[0] * score[1] for score in shiki_anime["scoresStats"]]) / ratings_count
@@ -92,7 +109,7 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
         shiki_videos=[v.values() for v in shiki_anime["videos"]],
         shiki_synonyms=shiki_anime["synonyms"],
         shiki_genres=[g["name"] for g in shiki_anime["genres"]],
-        qitems=anidb_page.qitems,
+        qitems=qitems,
     )
     session.add(result)
     await session.commit()
