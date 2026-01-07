@@ -178,8 +178,14 @@ windows_disk_regex = re.compile("^[A-Za-z]:.*$")
 
 class TorrentPath:
     def __init__(self, path: str) -> None:
-        self.path = path
+        self._path = path
         self.path_type = get_path_type(path)
+
+    @property
+    def path(self) -> str:
+        if self.path_type == PathType.LOCAL:
+            return str(Path(self._path).expanduser().resolve())
+        return self._path
 
     def is_valid(self) -> bool:
         if self.path_type == PathType.MAGNET:
