@@ -68,18 +68,24 @@ async def create_anime(session: SessionDep, mal_id: int) -> Any:
             category = Category.Ending
         else:
             continue
+        for credit, name in song["staff"].items():
+            if "Performed by" in credit:
+                artist = name
+                break
+        else:
+            artist = ""
         qitem = QItem(
             anime_id=mal_id,
             category=category,
             number=song["number"],
             song_name=song["song_name"],
-            song_artist=song["staff"].get("Vocals/Performed by (歌)", ""),
+            song_artist=artist,
         )
         qitems.append(qitem)
     ratings_count = sum(shiki_anime["scores_stats"].values())
     print(shiki_anime["scores_stats"])
     rating = (
-        sum([score * count for score, count in shiki_anime["scores_stats"].items()]) / ratings_count
+        sum([int(score) * count for score, count in shiki_anime["scores_stats"].items()]) / ratings_count
         if ratings_count > 0
         else None
     )
