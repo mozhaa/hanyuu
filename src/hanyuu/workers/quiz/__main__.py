@@ -2,12 +2,12 @@ import argparse
 import asyncio
 import logging
 import random
-from abc import ABC
+from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
 from typing import Generator, List
 
-from sqlalchemy import select
+from sqlalchemy import select, true
 
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
@@ -43,6 +43,7 @@ class RandomPicker(ABC):
         for _ in range(length):
             yield self.choice(items)
 
+    @abstractmethod
     def sample(self, limit: int) -> int:
         pass
 
@@ -69,26 +70,28 @@ class MemoryRandomPicker(RandomPicker):
 async def main(args: argparse.Namespace) -> None:
     engine = await get_engine()
     async with engine.async_session() as session:
-        quizparts = (
-            await session.scalars(
-                select(QuizPart.local_fp)
-                .join(QuizPart.difficulty)
-                .join(QuizPart.timing)
-                .join(QItemSourceTiming.qitem_source)
-                .join(QItemDifficulty.qitem)
-                .where(
-                    (QItem.category == Category.Opening)
-                    if args.category == "op"
-                    else ((QItem.category == Category.Ending) if args.category == "ed" else True)
+        quizparts = list(
+            (
+                await session.scalars(
+                    select(QuizPart.local_fp)
+                    .join(QuizPart.difficulty)
+                    .join(QuizPart.timing)
+                    .join(QItemSourceTiming.qitem_source)
+                    .join(QItemDifficulty.qitem)
+                    .where(
+                        (QItem.category == Category.Opening)
+                        if args.category == "op"
+                        else ((QItem.category == Category.Ending) if args.category == "ed" else true())
+                    )
+                    .where(QItemSource.added_by.in_(args.source_strategies))
+                    .where(QItem.anime_id.in_(args.anime_ids) if len(args.anime_ids) > 0 else true())
+                    .where(QItemSource.added_by.in_(args.source_strategies))
+                    .where(QItemSourceTiming.added_by.in_(args.timing_strategies))
+                    .where(QItemDifficulty.added_by.in_(args.difficulty_strategies))
+                    .where(QuizPart.style.in_(args.styles))
                 )
-                .where(QItemSource.added_by.in_(args.source_strategies))
-                .where(QItem.anime_id.in_(args.anime_ids) if len(args.anime_ids) > 0 else True)
-                .where(QItemSource.added_by.in_(args.source_strategies))
-                .where(QItemSourceTiming.added_by.in_(args.timing_strategies))
-                .where(QItemDifficulty.added_by.in_(args.difficulty_strategies))
-                .where(QuizPart.style.in_(args.styles))
-            )
-        ).all()
+            ).all()
+        )
 
     if args.random == "simple":
         picker = SimpleRandomPicker()

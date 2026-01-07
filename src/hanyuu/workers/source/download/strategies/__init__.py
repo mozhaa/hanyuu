@@ -10,3 +10,13 @@ strategies: Dict[str, SourceDownloadStrategy] = {
     "torrent": TorrentDownloadingStrategy("strategy_torrent"),
     "yt-dlp": YtDlpStrategy("strategy_ytdlp"),
 }
+
+__all__ = [
+    "InvalidSource",
+    "LocalFileStrategy",
+    "SourceDownloadStrategy",
+    "TemporaryFailure",
+    "TorrentDownloadingStrategy",
+    "YtDlpStrategy",
+    "strategies",
+]

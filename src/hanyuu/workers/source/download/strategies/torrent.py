@@ -44,10 +44,10 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
             # retrieve infohash from torrent
             try:
                 infohash = await torrent_path.infohash()
-            except aiohttp.ClientError:
-                raise TemporaryFailure(f"Failed to download torrent by url={qitem_source.path}")
-            except (ValueError, KeyError):
-                raise InvalidSource("Failed to bdecode torrent file contents")
+            except aiohttp.ClientError as e:
+                raise TemporaryFailure(f"Failed to download torrent by url={qitem_source.path}") from e
+            except (ValueError, KeyError) as e:
+                raise InvalidSource("Failed to bdecode torrent file contents") from e
 
             # search for that torrent in qbt
             torrent = next(iter(self.qbt_client.torrents_info(torrent_hashes=infohash)), None)
@@ -67,7 +67,9 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
                     qbt.TorrentFilePermissionError,
                 ) as e:
                     exc_type = TemporaryFailure if isinstance(e, qbt.TorrentFilePermissionError) else InvalidSource
-                    raise exc_type(f"qBitTorrent failed to add torrent by url={torrent_path.path} with exception: {e}")
+                    raise exc_type(
+                        f"qBitTorrent failed to add torrent by url={torrent_path.path} with exception: {e}"
+                    ) from e
 
                 # get new torrent info
                 torrent = next(iter(self.qbt_client.torrents_info(torrent_hashes=infohash)), None)
@@ -77,7 +79,7 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
                 # set "don't download" for all files
                 files = self.qbt_client.torrents_files(infohash)
                 ids = [f["id"] for f in files]
-                self.qbt_client.torrents_file_priority(infohash, ids, priority=0)
+                self.qbt_client.torrents_file_priority(infohash, ids, priority=0)  # type: ignore
             else:
                 files = self.qbt_client.torrents_files(infohash)
 
@@ -108,7 +110,7 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
                 qitem_source.downloading = False
                 await session.commit()
             if isinstance(e, (qbt.NotFound404Error, qbt.Conflict409Error)):
-                raise TemporaryFailure(f"Exception from qBitTorrent occured: {e}")
+                raise TemporaryFailure(f"Exception from qBitTorrent occured: {e}") from e
             # this should not happen, but if any other exceptions occured, it's an error
             raise e
 
@@ -126,17 +128,17 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
             try:
                 self._qbt_client.auth_log_in()
             except qbt.APIConnectionError as e:
-                raise TemporaryFailure(f"Failed to auth to qBitTorrent: {e}")
+                raise TemporaryFailure(f"Failed to auth to qBitTorrent: {e}") from e
         return self._qbt_client
 
     async def find_file(self, files: qbt.TorrentFilesList, name: str) -> Tuple[Optional[int], Optional[str]]:
         target = Path(name)
         for file in files:
             # with root folder or without
-            with_root = Path(file["name"])
+            with_root = Path(file["name"])  # type: ignore
             without_root = Path("/".join(with_root.parts[1:]))
             if with_root == target or without_root == target:
-                return file["id"], file["name"]
+                return file["id"], file["name"]  # type: ignore
         return None, None
 
 
@@ -197,5 +199,5 @@ class TorrentPath:
             else:
                 raise ValueError(f"Invalid torrent path (recognized type = {self.path_type})")
 
-            self._infohash = hashlib.sha1(bencodepy.encode(bencodepy.decode(data)[b"info"])).hexdigest()
+            self._infohash = hashlib.sha1(bencodepy.encode(dict(bencodepy.decode(data))[b"info"])).hexdigest()
         return self._infohash

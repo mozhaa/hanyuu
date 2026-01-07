@@ -8,3 +8,5 @@ styles: List[VideoMakerBase] = [
     VideoMaker("classic"),
     OneSecVideoMaker("onesec"),
 ]
+
+__all__ = ["OneSecVideoMaker", "VideoMaker", "VideoMakerBase", "styles"]

@@ -38,19 +38,19 @@ class YtDlpStrategy(SourceDownloadStrategy):
             with yt_dlp.YoutubeDL(params=params) as ydl:
                 yt_dlp_error_code = ydl.download(qitem_source.path)
         except yt_dlp.utils.DownloadError as e:
-            if "Failed to extract any player response" in e.msg:
+            if "Failed to extract any player response" in str(e):
                 # probably internet connection error
                 exc_type = TemporaryFailure
-            elif "Sign in to confirm your age" in e.msg:
+            elif "Sign in to confirm your age" in str(e):
                 # need to pass cookies, because video is age restriced
                 exc_type = TemporaryFailure
-            elif "https://github.com/yt-dlp/yt-dlp/issues/7271" in e.msg:
+            elif "https://github.com/yt-dlp/yt-dlp/issues/7271" in str(e):
                 # failed to extract cookies from browser, use firefox
                 exc_type = TemporaryFailure
             else:
                 # probably video is unavailable or invalid url
                 exc_type = InvalidSource
-            raise exc_type("yt-dlp failed with exception: " + e.msg)
+            raise exc_type("yt-dlp failed with exception: " + str(e)) from e
         finally:
             # set downloading = False
             engine = await get_engine(True)

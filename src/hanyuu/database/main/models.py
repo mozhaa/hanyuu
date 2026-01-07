@@ -21,7 +21,7 @@ class Base(AsyncAttrs, DeclarativeBase):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
-    type_annotation_map = {
+    type_annotation_map = {  # noqa: RUF012
         datetime: types.TIMESTAMP(timezone=True),
         List[str]: postgresql.ARRAY(String, dimensions=1, zero_indexes=True),
         List[List[str]]: postgresql.ARRAY(String, dimensions=2, zero_indexes=True),
@@ -36,18 +36,6 @@ class BaseWithID(Base):
     __abstract__ = True
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-
-
-class IncompleteDate(types.TypeDecorator):
-    impl = String
-    cache_ok = True
-    keys = ["day", "month", "year"]
-
-    def process_bind_param(self, value, dialect):
-        return ",".join(map(str, [value[key] or "" for key in IncompleteDate.keys]))
-
-    def process_result_value(self, value, dialect):
-        return dict(zip(IncompleteDate.keys, [int(x) if x != "" else None for x in value.split(",")]))
 
 
 class Anime(Base):

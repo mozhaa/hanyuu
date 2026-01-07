@@ -1,7 +1,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import bencodepy
 from rapidfuzz import fuzz
@@ -36,9 +36,9 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
         self.file_threshold = file_threshold
 
     @property
-    def files(self) -> List[List[str]]:
+    def files(self) -> dict[str, list[str]]:
         if not hasattr(self, "_files"):
-            torrent = bencodepy.decode_from_file(self.torrent_fp)
+            torrent = dict(bencodepy.decode_from_file(self.torrent_fp))
             paths = [[b.decode(encoding="utf-8") for b in f[b"path"]] for f in torrent[b"info"][b"files"]]
             self._files = {}
             for path in paths:
@@ -65,8 +65,12 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
         engine = await get_engine()
         async with engine.async_session() as session:
             qitem = await session.get(QItem, qitem_id)
+            if qitem is None:
+                raise RuntimeError(f"qitem with {qitem_id=} does not exist")
             anime = await qitem.awaitable_attrs.anime
             aod = await session.get(AODAnime, anime.mal_id)
+            if aod is None:
+                raise RuntimeError(f"aod record not found for {anime.mal_id=}")
 
         folder = self._find_folder(anime)
         if folder is None:
@@ -129,8 +133,14 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
         class AnitousenFilename:
             def __init__(self, filename: str) -> None:
                 match = global_regex.match(filename)
+                if match is None:
+                    raise RuntimeError(f"AnitousenFilename.__init__ recieved invalid {filename=}")
                 _, self.song_name, self.song_artist = match.groups()
-                tags = tags_regex.match(match.group(1).strip()).groups()
+                tags_string = match.group(1).strip()
+                match = tags_regex.match(tags_string)
+                if match is None:
+                    raise RuntimeError(f"{tags_string=} does not match regex {tags_pattern}")
+                tags = match.groups()
 
                 self.show_types = {}  # tv, ova, ona, special, movie
                 self.theme_type = None  # op, ed
@@ -138,7 +148,7 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
                 self.version = None  # v1, v2
                 self.episode = None  # EP04
 
-                for tag_name, tag_num in zip(tags[::2], tags[1::2]):
+                for tag_name, tag_num in zip(tags[::2], tags[1::2], strict=False):
                     if tag_name is None:
                         continue
                     tag_name = tag_name.lower()
@@ -149,6 +159,8 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
                     n1 = None
                     if tag_num is not None:
                         tag_num_match = tag_num_regex.match(tag_num)
+                        if tag_num_match is None:
+                            raise RuntimeError(f"invalid {tag_num=}")
                         n1 = int(tag_num_match.group(3) or tag_num_match.group(1))
 
                     if tag_name in ["tv", "special", "ona", "ova", "movie", "game"]:

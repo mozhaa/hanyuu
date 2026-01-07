@@ -4,3 +4,5 @@ from .base import DifficultyStrategy
 from .random import Random
 
 strategies: List[DifficultyStrategy] = [Random("strategy_random")]
+
+__all__ = ["DifficultyStrategy", "Random", "strategies"]

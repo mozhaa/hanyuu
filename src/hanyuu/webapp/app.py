@@ -3,11 +3,11 @@ from fastapi.staticfiles import StaticFiles
 
 from hanyuu.config import getenv
 
-from .routers import *
+from .routers import animes, difficulties, qitems, sources, timings
 from .routers.utils import redirect_to
 
 app = FastAPI()
-redirect_to(app, "/", "read_animes")
+redirect_to(app, "/", "read_animes")  # type: ignore
 app.mount("/static", StaticFiles(directory=getenv("static_dir")), name="static")
 
 app.include_router(animes.router)

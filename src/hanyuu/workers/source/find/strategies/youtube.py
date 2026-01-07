@@ -20,16 +20,16 @@ class YoutubeFindStrategy(SourceFindStrategy):
         name: str,
         title_algorithm: Callable[[str, str], float] = fuzz.token_ratio,
         score_threshold: float = 0.7,
-        possible_durations: list[float] = [90, 150],
-        helpers: list[str] = ["Creditless", "4K", "HD", "1080p"],
-        negative_helpers: list[str] = ["Cover", "AMV", "Full", "Lyrics"],
+        possible_durations: Optional[list[float]] = None,
+        helpers: Optional[list[str]] = None,
+        negative_helpers: Optional[list[str]] = None,
     ) -> None:
         super().__init__(name)
         self.title_algorithm = title_algorithm
         self.score_threshold = score_threshold
-        self.possible_durations = possible_durations
-        self.helpers = helpers
-        self.negative_helpers = negative_helpers
+        self.possible_durations = possible_durations if possible_durations is not None else [90, 150]
+        self.helpers = helpers if helpers is not None else ["Creditless", "4K", "HD", "1080p"]
+        self.negative_helpers = negative_helpers if negative_helpers is not None else ["Cover", "AMV", "Full", "Lyrics"]
 
     async def run(self, qitem_id: int) -> None:
         qitem_source = await self.find_source(qitem_id)
@@ -51,6 +51,8 @@ class YoutubeFindStrategy(SourceFindStrategy):
         engine = await get_engine(True)
         async with engine.async_session() as session:
             qitem = await session.get(QItem, qitem_id)
+            if qitem is None:
+                raise RuntimeError(f"qitem with {qitem_id=} does not exist")
             anime = await qitem.awaitable_attrs.anime
             title_ro = anime.shiki_title_ro
             title_en = anime.shiki_title_en

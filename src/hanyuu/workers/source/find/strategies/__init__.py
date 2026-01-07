@@ -10,3 +10,11 @@ strategies: List[SourceFindStrategy] = [
     ShikiAttachmentsStrategy("strategy_shiki"),
     YoutubeFindStrategy("strategy_youtube"),
 ]
+
+__all__ = [
+    "AniTousenTorrentStrategy",
+    "ShikiAttachmentsStrategy",
+    "SourceFindStrategy",
+    "YoutubeFindStrategy",
+    "strategies",
+]

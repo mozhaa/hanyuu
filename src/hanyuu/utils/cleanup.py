@@ -3,12 +3,12 @@ import logging
 from pathlib import Path
 from typing import List, Tuple, Type
 
-from sqlalchemy import case, delete, label, literal_column, select, update
+from sqlalchemy import case, delete, func, label, literal_column, select, update
 from sqlalchemy.orm import aliased
 
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
-from hanyuu.database.main.models import *
+from hanyuu.database.main.models import Base, QItemDifficulty, QItemSource, QItemSourceTiming, QuizPart
 from hanyuu.workers.source.find.strategies import strategies as finding_strategies
 
 logger = logging.getLogger(__name__)
@@ -129,9 +129,9 @@ async def cleanup() -> None:
     await clear_worse_sources()
 
     videos_dir = Path(getenv("resources_dir")) / "videos"
-    await delete_invalid_records(source_files, QItemSource)
+    await delete_invalid_records(source_files, QItemSource)  # type: ignore
     delete_unused_files(videos_dir / "sources", [x[1] for x in source_files])
-    await delete_invalid_records(quizpart_files, QuizPart)
+    await delete_invalid_records(quizpart_files, QuizPart)  # type: ignore
     delete_unused_files(videos_dir / "quizparts", [x[1] for x in quizpart_files])
 
 
