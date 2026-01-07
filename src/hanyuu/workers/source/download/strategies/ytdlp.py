@@ -44,7 +44,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
             elif "Sign in to confirm your age" in str(e):
                 # need to pass cookies, because video is age restriced
                 exc_type = TemporaryFailure
-            elif "https://github.com/yt-dlp/yt-dlp/issues/7271" in str(e):
+            elif "https://github.com/yt-dlp/yt-dlp/issues/7271" in str(e) or "cookies database" in str(e):
                 # failed to extract cookies from browser, use firefox
                 exc_type = TemporaryFailure
             else:
