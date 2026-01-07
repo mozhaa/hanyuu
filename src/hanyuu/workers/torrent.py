@@ -57,7 +57,9 @@ async def check(strategy_name: str) -> None:
                 engine = await get_engine()
                 async with engine.async_session() as session:
                     source = await session.get(QItemSource, dtf["qitem_source_id"])
-                    local_fp = try_make_path_relative(Path(torrents[dtf["infohash"]]["save_path"]) / Path(dtf["name"]))
+                    if source is None:
+                        raise RuntimeError(f"no source with id={dtf['qitem_source_id']}")
+                    local_fp = try_make_path_relative(Path(torrents[dtf["infohash"]]["save_path"]) / Path(dtf["name"]))  # type: ignore
                     source.local_fp = str(local_fp)
                     source.downloading = False
                     await session.commit()
@@ -79,5 +81,5 @@ if __name__ == "__main__":
     parser.add_argument("-t", type=float, default=15, help="interval between fetches of qbt torrents info")
     parser.add_argument("--strategy", type=str, default="strategy_torrent", help="name of torrent strategy")
     args = parser.parse_args()
-    worker_log_config(Path(getenv("resources_dir")) / "workers" / "torrents.log")
+    worker_log_config(str(Path(getenv("resources_dir")) / "workers" / "torrents.log"))
     asyncio.run(main(args.t, args.strategy))
