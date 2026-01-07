@@ -3,7 +3,7 @@ import asyncio
 import logging
 from pathlib import Path
 
-from sqlalchemy import case, delete, label, literal_column, select
+from sqlalchemy import case, delete, label, literal_column, select, true
 
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
@@ -57,10 +57,10 @@ async def run_jobs(args: argparse.Namespace) -> None:
                 .where(
                     (QItem.category == Category.Opening)
                     if args.category == "op"
-                    else ((QItem.category == Category.Ending) if args.category == "ed" else True)
+                    else ((QItem.category == Category.Ending) if args.category == "ed" else true())
                 )
                 .where(QItemSource.added_by.in_(args.source_strategies))
-                .where(QItem.anime_id.in_(args.anime_ids) if len(args.anime_ids) > 0 else True)
+                .where(QItem.anime_id.in_(args.anime_ids) if len(args.anime_ids) > 0 else true())
                 .where(
                     (QuizPart.updated_at < QItemDifficulty.updated_at)
                     | (QuizPart.updated_at < QItemSourceTiming.updated_at)
@@ -101,12 +101,12 @@ async def run_jobs(args: argparse.Namespace) -> None:
             .where(
                 (QItem.category == Category.Opening)
                 if args.category == "op"
-                else ((QItem.category == Category.Ending) if args.category == "ed" else True)
+                else ((QItem.category == Category.Ending) if args.category == "ed" else true())
             )  # only accepted qitem category
             .where(QItemSourceTiming.added_by.in_(args.timing_strategies))  # only accepted difficulties
             .where(QItemDifficulty.added_by.in_(args.difficulty_strategies))  # only accepted timings
             .where(QItemSource.added_by.in_(args.source_strategies))  # only accepted sources
-            .where(QItem.anime_id.in_(args.anime_ids) if len(args.anime_ids) > 0 else True)  # only accepted anime ids
+            .where(QItem.anime_id.in_(args.anime_ids) if len(args.anime_ids) > 0 else true())  # only accepted anime ids
             .where(QItemSource.local_fp.isnot(None))  # only downloaded
             .order_by(
                 QItemSource.id,
