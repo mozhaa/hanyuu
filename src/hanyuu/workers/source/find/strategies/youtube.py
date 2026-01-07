@@ -1,10 +1,11 @@
+import asyncio
 import logging
 import re
-from datetime import datetime
+from functools import partial
 from typing import Any, Callable, Optional
 
 from rapidfuzz import fuzz
-from youtubesearchpython.__future__ import VideosSearch
+from yt_dlp import YoutubeDL
 
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItem, QItemSource
@@ -62,9 +63,16 @@ class YoutubeFindStrategy(SourceFindStrategy):
             category = qitem.category.name
             query = f"{title} {category} {qitem.number}"
             logger.info(f"YouTube search query: {query}")
-            results = (await VideosSearch(query=query, limit=10).next())["result"]
+            loop = asyncio.get_running_loop()
+            ydl_opts = {"quiet": True, "extract_flat": True}
+            with YoutubeDL(ydl_opts) as ydl:
+                info = await loop.run_in_executor(
+                    None, partial(ydl.extract_info, f"ytsearch10:{query}", download=False)
+                )
+            results = info["entries"]
             logger.info(f"Found {len(results)} youtube search results")
-            for video in results:
+            for _video in results:
+                video = {"title": _video["title"], "link": _video["url"], "duration": _video["duration"]}
                 score = self._score(video, query)
                 link = video["link"]
                 if link not in scores:
@@ -74,7 +82,7 @@ class YoutubeFindStrategy(SourceFindStrategy):
         scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         scores = [
             (
-                QItemSource(qitem=qitem, platform="yt-dlp", path=link, added_by=self.name),
+                QItemSource(qitem_id=qitem.id, platform="yt-dlp", path=link, added_by=self.name),
                 score,
             )
             for link, score in scores
@@ -91,9 +99,8 @@ class YoutubeFindStrategy(SourceFindStrategy):
     def _negative_helpers_score(self, title: str) -> float:
         return helpers_score(self.negative_helpers, title)
 
-    def _duration_score(self, duration: str) -> float:
-        s = parse_time_as_seconds(duration)
-        return max([assymetrical_similarity(s, d) for d in self.possible_durations])
+    def _duration_score(self, duration: float) -> float:
+        return max([assymetrical_similarity(duration, d) for d in self.possible_durations])
 
     def _score(self, video: dict[str, Any], query: str) -> float:
         negative_helpers_score = self._negative_helpers_score(video["title"])
@@ -155,18 +162,3 @@ def preprocess(title: str, num_w: int = 1) -> str:
 
 def helpers_score(helpers: list[str], s: str) -> float:
     return len(re.findall("|".join([re.escape(w) for w in helpers]), s)) / len(helpers)
-
-
-def parse_time_as_seconds(s: str) -> float:
-    possible_formats = [
-        "%H:%M:%S",
-        "%M:%S",
-        "%S",
-    ]
-    for format in possible_formats:
-        try:
-            t = datetime.strptime(s, format).time()
-            return t.microsecond / 1e6 + t.second + 60 * (t.minute + 60 * (t.hour))
-        except ValueError:
-            continue
-    raise ValueError(f"{s} is not a valid duration")
