@@ -191,24 +191,3 @@ class AODAnime(Base):
     tags: Mapped[List[str]]
     synonyms: Mapped[List[str]]
     related_animes: Mapped[List[str]]
-
-
-# class ToshoTorrent(Base):
-#     __tablename__ = "tosho_torrent"
-
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     name: Mapped[str]
-#     link: Mapped[str]
-#     magnet: Mapped[str]
-#     torrentname: Mapped[Optional[str]]
-#     torrentfiles: Mapped[int]
-#     aid: Mapped[int] = mapped_column(index=True)
-
-
-# class ToshoFile(Base):
-#     __tablename__ = "tosho_file"
-
-#     id: Mapped[int] = mapped_column(primary_key=True)
-#     torrent_id: Mapped[int] = mapped_column(ForeignKey("tosho_torrent.id"))
-#     filename: Mapped[str]
-#     filesize: Mapped[int]
