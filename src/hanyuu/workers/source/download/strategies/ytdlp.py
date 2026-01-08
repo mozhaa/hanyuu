@@ -29,6 +29,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
                 "outtmpl": f"{download_dir}/{qitem_source.id}.%(ext)s",
                 "format": "bv*[height=720]+ba/b[height=720]/"
                 "bv*[height>720][height<=1080]+ba/b[height>720][height<=1080]/bv*+ba/b",
+                "abort_on_unavailable_fragments": True,
             }
 
             # set cookies from browser option for age restricted videos
