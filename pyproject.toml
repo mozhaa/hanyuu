@@ -54,3 +54,26 @@ anime-utils = { git = "https://github.com/mozhaa/anime-utils.git", rev = "v1.2.5
 
 [tool.ruff]
 line-length = 120
+
+[tool.alembic]
+output_encoding = "utf-8"
+path_separator = "os"
+script_location = "%(here)s/alembic"
+file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(slug)s"
+prepend_sys_path = [
+    "."
+]
+
+[[tool.alembic.post_write_hooks]]
+entrypoint = "ruff_format"
+executable = "ruff"
+name = "ruff_format"
+options = "format REVISION_SCRIPT_FILENAME"
+type = "exec"
+
+[[tool.alembic.post_write_hooks]]
+entrypoint = "ruff_check"
+executable = "ruff"
+name = "ruff_check"
+options = "check --fix REVISION_SCRIPT_FILENAME"
+type = "exec"
