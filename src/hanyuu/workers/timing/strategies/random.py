@@ -10,7 +10,7 @@ from .base import TimingStrategy
 
 class RandomTiming(TimingStrategy):
     async def run(self, qitem_source_id: int) -> None:
-        engine = await get_engine()
+        engine = get_engine()
         guess_reveal_time = random_time(1 * 1000000, 80 * 1000000)
         async with engine.async_session() as session:
             timing = QItemSourceTiming(

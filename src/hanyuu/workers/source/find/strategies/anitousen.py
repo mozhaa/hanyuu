@@ -56,13 +56,13 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
             logger.info(f"Strategy failure! qitem_id={qitem_id}")
             return
         logger.info(f"Strategy success! New source for qitem_id={qitem_id}: {source}")
-        engine = await get_engine()
+        engine = get_engine()
         async with engine.async_session() as session:
             session.add(source)
             await session.commit()
 
     async def _find_source(self, qitem_id: int) -> Optional[QItemSource]:
-        engine = await get_engine()
+        engine = get_engine()
         async with engine.async_session() as session:
             qitem = await session.get(QItem, qitem_id)
             if qitem is None:

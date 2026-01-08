@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class YtDlpStrategy(SourceDownloadStrategy):
     async def run(self, qitem_source: QItemSource) -> None:
         download_dir = Path(getenv("resources_dir")) / "videos" / "sources" / self.name
-        engine = await get_engine(True)
+        engine = get_engine(True)
         async with engine.async_session() as session:
             session.add(qitem_source)
             qitem_source.downloading = True
@@ -54,7 +54,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
             raise exc_type("yt-dlp failed with exception: " + str(e)) from e
         finally:
             # set downloading = False
-            engine = await get_engine(True)
+            engine = get_engine(True)
             async with engine.async_session() as session:
                 session.add(qitem_source)
                 await session.refresh(qitem_source)

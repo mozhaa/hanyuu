@@ -18,7 +18,7 @@ class LocalFileStrategy(SourceDownloadStrategy):
         if not is_video_with_audio(qitem_source.path):
             raise InvalidSource(f'File "{qitem_source.path}" is not a video or video without audio')
 
-        engine = await get_engine()
+        engine = get_engine()
         async with engine.async_session() as session:
             session.add(qitem_source)
             qitem_source.local_fp = str(try_make_path_relative(qitem_source.path))

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 async def run_videomaker(timing_id: int, difficulty_id: int, videomaker: VideoMakerBase) -> None:
-    engine = await get_engine()
+    engine = get_engine()
     async with engine.async_session() as session:
         quiz_part = QuizPart(timing_id=timing_id, difficulty_id=difficulty_id, style=videomaker.name, local_fp="")
         session.add(quiz_part)
@@ -44,7 +44,7 @@ async def run_videomaker(timing_id: int, difficulty_id: int, videomaker: VideoMa
 
 
 async def run_jobs(args: argparse.Namespace) -> None:
-    engine = await get_engine()
+    engine = get_engine()
     async with engine.async_session() as session:
         # delete quizparts, that are older than their difficulty or timing
         expired_quizparts = (

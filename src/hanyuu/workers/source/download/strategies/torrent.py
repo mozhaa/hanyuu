@@ -27,7 +27,7 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
     async def run(self, qitem_source: QItemSource) -> None:
         worker_dir = Path(getenv("resources_dir")) / "workers" / "source" / "download" / self.name
 
-        engine = await get_engine()
+        engine = get_engine()
         async with engine.async_session() as session:
             session.add(qitem_source)
             qitem_source.downloading = True

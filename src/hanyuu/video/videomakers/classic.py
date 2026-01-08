@@ -75,7 +75,7 @@ class VideoMaker(VideoMakerBase):
         self.vpos = vpos if vpos is not None else VideoPositioning()
 
     async def create_video(self, timing_id: int, difficulty_id: int, output_fp: str) -> None:
-        engine = await get_engine()
+        engine = get_engine()
         async with engine.async_session() as session:
             difficulty = await session.get(QItemDifficulty, difficulty_id)
             timing = await session.get(QItemSourceTiming, timing_id)

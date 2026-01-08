@@ -8,7 +8,7 @@ from .base import DifficultyStrategy
 
 class Random(DifficultyStrategy):
     async def run(self, qitem_id: int) -> None:
-        engine = await get_engine()
+        engine = get_engine()
         async with engine.async_session() as session:
             difficulty = QItemDifficulty(
                 qitem_id=qitem_id,

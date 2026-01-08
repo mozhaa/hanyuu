@@ -68,7 +68,7 @@ class MemoryRandomPicker(RandomPicker):
 
 
 async def main(args: argparse.Namespace) -> None:
-    engine = await get_engine()
+    engine = get_engine()
     async with engine.async_session() as session:
         quizparts = list(
             (

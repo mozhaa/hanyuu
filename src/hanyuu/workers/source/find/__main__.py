@@ -20,7 +20,7 @@ worker_dir = Path(getenv("resources_dir")) / "workers" / "source" / "find"
 
 
 async def job(strategy: SourceFindStrategy, wait: float, max_no_fetch: float) -> None:
-    engine = await get_engine()
+    engine = get_engine()
     async with engine.async_session() as session:
         # soures, added by this strategy
         sources = aliased(QItemSource, select(QItemSource).where(QItemSource.added_by == strategy.name).subquery())

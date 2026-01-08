@@ -21,7 +21,7 @@ async def run_job() -> None:
     Every qitem will get difficulties by all possible strategies, in order of strategies priority
     """
 
-    engine = await get_engine()
+    engine = get_engine()
     for strategy in strategies:
         async with engine.async_session() as session:
             # qitems without difficulty by this strategy

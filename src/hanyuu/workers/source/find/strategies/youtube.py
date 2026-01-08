@@ -35,7 +35,7 @@ class YoutubeFindStrategy(SourceFindStrategy):
     async def run(self, qitem_id: int) -> None:
         qitem_source = await self.find_source(qitem_id)
         if qitem_source is not None:
-            engine = await get_engine(True)
+            engine = get_engine(True)
             async with engine.async_session() as session:
                 session.add(qitem_source)
                 await session.commit()
@@ -49,7 +49,7 @@ class YoutubeFindStrategy(SourceFindStrategy):
         logger.info(f"Top score: {score} < {self.score_threshold}, link={source.path}, failure")
 
     async def get_sorted_sources(self, qitem_id: int) -> list[tuple[QItemSource, float]]:
-        engine = await get_engine(True)
+        engine = get_engine(True)
         async with engine.async_session() as session:
             qitem = await session.get(QItem, qitem_id)
             if qitem is None:

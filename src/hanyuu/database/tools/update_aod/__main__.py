@@ -65,7 +65,7 @@ async def update() -> None:
 
     print(f"Found {len(animes)} animes")
     print("Commiting to database...", end=" ")
-    engine = await main.get_engine()
+    engine = main.get_engine()
     async with engine.async_session() as session:
         await session.execute(delete(AODAnime))
         session.add_all(animes)

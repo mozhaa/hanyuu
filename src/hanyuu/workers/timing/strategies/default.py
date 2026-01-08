@@ -8,7 +8,7 @@ from .base import TimingStrategy
 
 class DefaultTiming(TimingStrategy):
     async def run(self, qitem_source_id: int) -> None:
-        engine = await get_engine()
+        engine = get_engine()
         async with engine.async_session() as session:
             timing = QItemSourceTiming(
                 qitem_source_id=qitem_source_id,

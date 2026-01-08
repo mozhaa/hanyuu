@@ -13,7 +13,7 @@ countdown_fp = Path(getenv("static_dir")) / "video" / "one_sec_guess_265.mp4"
 
 class OneSecVideoMaker(VideoMakerBase):
     async def create_video(self, timing_id: int, difficulty_id: int, output_fp: str) -> None:
-        engine = await get_engine()
+        engine = get_engine()
         async with engine.async_session() as session:
             timing = await session.get(QItemSourceTiming, timing_id)
             source = await timing.awaitable_attrs.qitem_source

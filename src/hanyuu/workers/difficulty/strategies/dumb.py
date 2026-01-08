@@ -8,7 +8,7 @@ from .base import DifficultyStrategy
 
 class Dumb(DifficultyStrategy):
     async def run(self, qitem_id: int) -> None:
-        engine = await get_engine()
+        engine = get_engine()
         async with engine.async_session() as session:
             qitem = await session.get(QItem, qitem_id)
             if qitem is None:

@@ -54,7 +54,7 @@ async def check(strategy_name: str) -> None:
             if file is None:
                 logger.warning(f"{dtf['name']} has been removed as it has invalid file name")
             elif file["progress"] == 1:
-                engine = await get_engine()
+                engine = get_engine()
                 async with engine.async_session() as session:
                     source = await session.get(QItemSource, dtf["qitem_source_id"])
                     if source is None:

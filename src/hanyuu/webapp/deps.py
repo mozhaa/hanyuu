@@ -8,7 +8,7 @@ from hanyuu.database.main.connection import get_engine
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
-    engine = await get_engine()
+    engine = get_engine()
     async with engine.async_session(expire_on_commit=False) as session:
         yield session
 

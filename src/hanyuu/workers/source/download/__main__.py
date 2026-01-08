@@ -21,7 +21,7 @@ worker_dir = Path(getenv("resources_dir")) / "workers" / "source" / "download"
 
 
 async def run_loop(platform: str, strategy: SourceDownloadStrategy, wait_duration: float, ban_duration: float) -> None:
-    engine = await get_engine()
+    engine = get_engine()
     f_strategies = ["manual"] + [s.name for s in finding_strategies]
     temporary_failed_sources = dict()
     while True:
