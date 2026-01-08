@@ -26,6 +26,10 @@
                 </a>
             {% endfor %}
         </div>
+        <div class="pagination">
+            <a href="{{ url_for('read_animes')}}?page={{ current_page - 1 }}" class="{{ 'disabled' if current_page < 2 else '' }}">Previous</a>
+            <a href="{{ url_for('read_animes')}}?page={{ current_page + 1 }}" class="{{ 'disabled' if current_page >= total_pages else '' }}">Next</a>
+        </div>
     </div>
 </body>
 </html>

@@ -50,3 +50,23 @@
         }
     }
 }
+
+.pagination {
+    display: flex; 
+    gap: 1em; 
+    justify-content: center;
+
+    & > a {
+        color: var(--color-black);
+        text-decoration: none;
+        
+        &.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+}

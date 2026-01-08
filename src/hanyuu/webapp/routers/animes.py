@@ -2,10 +2,10 @@ from typing import Any
 
 from anime_utils.clients.anidb import AniDBScraper
 from anime_utils.clients.shikimori import ShikimoriClient
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from hanyuu.database.main.models import Anime, AODAnime, Category, QItem
 from hanyuu.webapp.deps import SessionDep
@@ -15,13 +15,27 @@ from .utils import already_exists, no_such, templates
 router = APIRouter(prefix="/animes")
 
 
-@router.get("", response_class=HTMLResponse)
+@router.get("", response_class=HTMLResponse, name="read_animes")
 async def read_animes(request: Request, session: SessionDep, page: int = 1) -> Any:
     page_size = 20
+
+    total_count = await session.scalar(select(func.count()).select_from(Anime))
+    total_pages = (total_count + page_size - 1) // page_size if total_count else 1
+    if page < 1 or page > total_pages:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
     result = await session.scalars(
         select(Anime).order_by(Anime.updated_at.desc()).limit(page_size).offset((page - 1) * page_size)
     )
-    return templates.TemplateResponse(request=request, name="anime/read_all.html", context={"animes": result.all()})
+    return templates.TemplateResponse(
+        request=request,
+        name="anime/read_all.html",
+        context={
+            "animes": result.all(),
+            "current_page": page,
+            "total_pages": total_pages,
+        },
+    )
 
 
 @router.get("/search", response_class=JSONResponse)
