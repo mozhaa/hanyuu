@@ -5,6 +5,7 @@
         {% if source.local_fp is not none %}
             <a class="video-link" href="{{ url_for('get_source_video', id_=source.id) }}">Watch</a>
         {% endif %}
+        <span class="added-by">{{ source.added_by }}</span>
 
         <section>
             <label for="platform">Platform</label>

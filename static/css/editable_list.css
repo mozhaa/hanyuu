@@ -56,6 +56,11 @@
     border-radius: 10px;
     background-color: var(--background);
     padding: 1em;
+    
+    &:has(.added-by) {
+        position: relative;
+        padding-top: 2em;
+    }
 }
 
 .editable-list-item .editable-list-title {
@@ -223,4 +228,14 @@ form.unsaved.alias::before {
     top: 1em;
     right: 1em;
     position: absolute;
+}
+
+.added-by {
+    font-size: 0.75em;
+    color: color-mix(in srgb, var(--color-black), transparent 50%);
+    font-style: italic;
+    position: absolute;
+    top: 0.5em;
+    right: 1em;
+    white-space: nowrap;
 }

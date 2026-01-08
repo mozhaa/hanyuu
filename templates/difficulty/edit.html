@@ -1,6 +1,7 @@
 <div class="editable-list-item" data-id="{{ difficulty.id }}">
     <form>
         <input type="number" name="id" value="{{ difficulty.id }}" style="display: none" readonly>
+        <span class="added-by">{{ difficulty.added_by }}</span>
 
         <label for="value">Difficulty</label>
         <input type="range" name="value" min="1" max="100" id="d-rng-{{ difficulty.id }}" 
