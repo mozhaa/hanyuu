@@ -1,10 +1,9 @@
-import argparse
 import asyncio
 import logging
 import logging.config
 import time
 from pathlib import Path
-from typing import Any, Awaitable, Callable, List, Optional
+from typing import Any, Callable, List
 
 import orjson
 from filelock import FileLock
@@ -71,45 +70,6 @@ def restrict_callrate(interval: float, synchronized: bool = False):
         return wrapper
 
     return decorator
-
-
-class StrategyRunner:
-    def __init__(
-        self,
-        select_job: Callable[[], Optional[Awaitable[None]]],
-        synchronized: bool = True,
-    ) -> None:
-        parser = argparse.ArgumentParser(
-            "Strategies runner",
-            "Concurrently run strategies",
-        )
-        parser.add_argument(
-            "--interval",
-            type=int,
-            default=10,
-            help="interval time between strategy runs in seconds",
-        )
-        parser.add_argument(
-            "--num-threads",
-            type=int,
-            default=1,
-            help="number of threads, that concurrently run strategies",
-        )
-
-        self.args = parser.parse_args()
-        self.select_job = restrict_callrate(self.args.interval, synchronized)(select_job)
-
-    async def poll(self, select_job: Callable[[], Awaitable[Optional[Awaitable[None]]]]) -> None:
-        while True:
-            job = await select_job()
-            if job is not None:
-                await job
-
-    async def poll_many(self) -> None:
-        return await asyncio.gather(*[self.poll(self.select_job) for _ in range(self.args.num_threads)])
-
-    def start(self) -> None:
-        asyncio.run(self.poll_many())
 
 
 def worker_log_config(fp: str) -> None:
