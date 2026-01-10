@@ -89,6 +89,7 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
 
         async with get_engine().async_session() as session:
             session.add(qitem_source)
+            await session.refresh(qitem_source)
             qitem_source.dl_info = infohash
             await session.commit()
 

@@ -68,10 +68,27 @@ async def run_loop(platform: str, strategy: SourceDownloadStrategy, wait_duratio
             continue
 
         for source in sources:
+            source_id = source.id
+            async with engine.async_session() as session:
+                session.add(source)
+                await session.refresh(source)
+                if source.local_fp is not None:
+                    logger.warning(
+                        "skipping previously fetched source, "
+                        f"because it was already downloaded ({source_id=}, {source.local_fp=})"
+                    )
+                    continue
+                elif source.dl_info is not None:
+                    logger.warning(
+                        "skipping previously fetched source, "
+                        f"because it's already downloading ({source_id=}, {source.dl_info=})"
+                    )
+                    continue
+                session.expunge(source)
             try:
                 logger.info(f"Running strategy {strategy.name} on {source}")
                 await strategy.run(source)
-                logger.info(f"Strategy {strategy.name} ended with success (source_id={source.id})")
+                logger.info(f"Strategy {strategy.name} ended with success (source_id={source_id})")
             except InvalidSource as e:
                 logger.warning(f"Source marked as invalid: {source}\n\tMessage: {e}")
                 async with engine.async_session() as session:
@@ -80,7 +97,7 @@ async def run_loop(platform: str, strategy: SourceDownloadStrategy, wait_duratio
                     await session.commit()
             except TemporaryFailure as e:
                 logger.warning(f"Temporary failure occured during strategy {strategy.name}\n\tMessage: {e}")
-                temporary_failed_sources[source.id] = time.time()
+                temporary_failed_sources[source_id] = time.time()
 
 
 async def main(wait: float, ban_duration: float, delay: float) -> None:
