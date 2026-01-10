@@ -142,3 +142,10 @@ def try_make_path_relative(path: Path | str) -> Path:
 async def delayed[T](delay: float, wrapped: Callable[..., T], *args, **kwargs) -> T:
     await asyncio.sleep(delay)
     return await wrapped(*args, **kwargs)
+
+
+def compare_path_with_and_without_root(path: str, path_without_root: str) -> bool:
+    with_root = Path(path)
+    without_root = Path("/".join(with_root.parts[1:]))
+    p = Path(path_without_root)
+    return with_root == p or without_root == p

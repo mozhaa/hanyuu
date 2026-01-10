@@ -10,7 +10,7 @@ from sqlalchemy import select
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItemSource
-from hanyuu.workers.utils import try_make_path_relative, worker_log_config
+from hanyuu.workers.utils import compare_path_with_and_without_root, try_make_path_relative, worker_log_config
 
 _qbt_client: Optional[qbt.Client] = None
 logger = logging.getLogger(__name__)
@@ -33,10 +33,13 @@ def get_qbt_client() -> qbt.Client:
 
 async def check(strategy_name: str) -> None:
     async with get_engine().async_session() as session:
-        sources = await session.scalars(
-            select(QItemSource).where(QItemSource.platform == "torrent").where(QItemSource.dl_info.is_not(None))
-        )
+        sources = (
+            await session.scalars(
+                select(QItemSource).where(QItemSource.platform == "torrent").where(QItemSource.dl_info.is_not(None))
+            )
+        ).all()
 
+        logger.debug(f"found {len(sources)} downloading sources: {[source.id for source in sources]}")
         hashes = set([source.dl_info for source in sources])
         if len(hashes) == 0:
             return
@@ -46,28 +49,25 @@ async def check(strategy_name: str) -> None:
 
         for source in sources:
             if source.dl_info not in torrents:
-                logger.warning(f"{source.additional_path} has been removed as it's not in QBT anymore")
+                logger.warning(f"{source.path} not in QBT anymore")
                 continue
 
             # get torrent contents from qbt
             files = client.torrents_files(source.dl_info)
 
             # find file we need
-            file = next(iter([f for f in files if f["name"] == source.additional_path]), None)
+            it = (f for f in files if compare_path_with_and_without_root(f["name"], source.additional_path))  # type: ignore
+            file = next(it, None)
             if file is None:
-                logger.warning(f"{source.additional_path} has been removed as it has invalid file name")
+                logger.warning(f"{source.additional_path} was not found in torrent contents")
             elif file["progress"] == 1:
-                engine = get_engine()
-                async with engine.async_session() as session:
-                    local_fp = try_make_path_relative(
-                        Path(torrents[source.dl_info]["save_path"]) / Path(source.additional_path)  # type: ignore
-                    )
-                    source.local_fp = str(local_fp)
-                    source.dl_info = None
-                    await session.commit()
-                logger.info(
-                    f"{source.additional_path} has been removed as it has been downloaded, local_fp='{local_fp}'"
+                local_fp = try_make_path_relative(
+                    Path(torrents[source.dl_info]["save_path"]) / Path(file["name"])  # type: ignore
                 )
+                source.local_fp = str(local_fp)
+                source.dl_info = None
+                logger.info(f"{source.additional_path} has been downloaded (unset dl_info), {local_fp=}")
+        await session.commit()
 
 
 async def main(interval: float, strategy_name: str) -> None:

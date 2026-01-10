@@ -15,6 +15,7 @@ from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItemSource
 from hanyuu.utils import default_headers
+from hanyuu.workers.utils import compare_path_with_and_without_root
 
 from .base import InvalidSource, SourceDownloadStrategy, TemporaryFailure
 
@@ -113,10 +114,7 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
     async def find_file(self, files: qbt.TorrentFilesList, name: str) -> Tuple[Optional[int], Optional[str]]:
         target = Path(name)
         for file in files:
-            # with root folder or without
-            with_root = Path(file["name"])  # type: ignore
-            without_root = Path("/".join(with_root.parts[1:]))
-            if with_root == target or without_root == target:
+            if compare_path_with_and_without_root(file["name"], target):  # type: ignore
                 return file["id"], file["name"]  # type: ignore
         return None, None
 
