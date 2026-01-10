@@ -15,11 +15,6 @@ logger = logging.getLogger(__name__)
 class YtDlpStrategy(SourceDownloadStrategy):
     async def run(self, qitem_source: QItemSource) -> None:
         download_dir = Path(getenv("resources_dir")) / "videos" / "sources" / self.name
-        engine = get_engine(True)
-        async with engine.async_session() as session:
-            session.add(qitem_source)
-            qitem_source.downloading = True
-            await session.commit()
 
         yt_dlp_error_code = None
 
@@ -52,19 +47,17 @@ class YtDlpStrategy(SourceDownloadStrategy):
                 # probably video is unavailable or invalid url
                 exc_type = InvalidSource
             raise exc_type("yt-dlp failed with exception: " + str(e)) from e
-        finally:
-            # set downloading = False
-            engine = get_engine(True)
-            async with engine.async_session() as session:
-                session.add(qitem_source)
-                await session.refresh(qitem_source)
-                qitem_source.downloading = False
-                if yt_dlp_error_code == 0:
-                    # download was successful, find downloaded video file
-                    local_fp = next(download_dir.glob(f"{qitem_source.id}.*"), None)
-                    if local_fp is not None:
-                        qitem_source.local_fp = str(local_fp)
-                await session.commit()
 
-        if yt_dlp_error_code != 0:
+        if yt_dlp_error_code == 0:
+            # download was successful, find downloaded video file
+            local_fp = next(download_dir.glob(f"{qitem_source.id}.*"), None)
+            if local_fp is not None:
+                async with get_engine().async_session() as session:
+                    session.add(qitem_source)
+                    await session.refresh(qitem_source)
+                    qitem_source.local_fp = str(local_fp)
+                    await session.commit()
+            else:
+                logger.warning(f"yt-dlp returned 0, but video was not found ({qitem_source.id=})")
+        else:
             raise TemporaryFailure(f"yt-dlp terminated with non-zero error_code={yt_dlp_error_code}")

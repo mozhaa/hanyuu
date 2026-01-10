@@ -103,7 +103,7 @@ class QItemSource(BaseWithID):
     added_by: Mapped[str]
     local_fp: Mapped[Optional[str]]
 
-    downloading: Mapped[bool] = mapped_column(default=False)
+    dl_info: Mapped[Optional[str]]
     invalid: Mapped[bool] = mapped_column(default=False)
 
     qitem: Mapped["QItem"] = relationship(back_populates="sources")

@@ -57,7 +57,7 @@ async def run_loop(platform: str, strategy: SourceDownloadStrategy, wait_duratio
                 await session.scalars(
                     select(best_sources)
                     .where(best_sources.local_fp.is_(None))
-                    .where(best_sources.downloading.is_(False))
+                    .where(best_sources.dl_info.is_(None))
                     .where(best_sources.id.not_in(temporary_failed_sources.keys()))
                     .where(best_sources.platform == platform)
                 )

@@ -1,4 +1,3 @@
-import datetime
 import hashlib
 import logging
 import re
@@ -16,7 +15,6 @@ from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItemSource
 from hanyuu.utils import default_headers
-from hanyuu.workers.utils import FiledList
 
 from .base import InvalidSource, SourceDownloadStrategy, TemporaryFailure
 
@@ -25,14 +23,6 @@ logger = logging.getLogger(__name__)
 
 class TorrentDownloadingStrategy(SourceDownloadStrategy):
     async def run(self, qitem_source: QItemSource) -> None:
-        worker_dir = Path(getenv("resources_dir")) / "workers" / "source" / "download" / self.name
-
-        engine = get_engine()
-        async with engine.async_session() as session:
-            session.add(qitem_source)
-            qitem_source.downloading = True
-            await session.commit()
-
         try:
             if qitem_source.additional_path is None:
                 raise InvalidSource("Torrent additional path is invalid")
@@ -84,7 +74,7 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
                 files = self.qbt_client.torrents_files(infohash)
 
             # find file we need in torrent contents
-            file_id, file_path = await self.find_file(files, qitem_source.additional_path)
+            file_id, _ = await self.find_file(files, qitem_source.additional_path)
             if file_id is None:
                 raise InvalidSource(f'"{qitem_source.additional_path}" was not found in torrent {torrent_path.path}')
 
@@ -94,25 +84,13 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
             # resume torrent, in case it's paused after we added it
             self.qbt_client.torrents_resume(infohash)
 
-            # add torrent into list of downloading torrents
-            async with FiledList(str(worker_dir / "downloading_torrents.json")) as dtfs:
-                dtfs.append(
-                    {
-                        "infohash": infohash,
-                        "name": file_path,
-                        "qitem_source_id": qitem_source.id,
-                        "added_on": datetime.datetime.now(),
-                    }
-                )
-        except Exception as e:
-            async with engine.async_session() as session:
-                session.add(qitem_source)
-                qitem_source.downloading = False
-                await session.commit()
-            if isinstance(e, (qbt.NotFound404Error, qbt.Conflict409Error)):
-                raise TemporaryFailure(f"Exception from qBitTorrent occured: {e}") from e
-            # this should not happen, but if any other exceptions occured, it's an error
-            raise e
+        except (qbt.NotFound404Error, qbt.Conflict409Error) as e:
+            raise TemporaryFailure(f"Exception from qBitTorrent occured: {e}") from e
+
+        async with get_engine().async_session() as session:
+            session.add(qitem_source)
+            qitem_source.dl_info = infohash
+            await session.commit()
 
     @property
     def qbt_client(self) -> qbt.Client:
