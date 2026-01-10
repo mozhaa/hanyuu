@@ -40,7 +40,8 @@ class ShikiAttachmentsStrategy(SourceFindStrategy):
             async with engine.async_session() as session:
                 session.add(QItemSource(qitem_id=qitem.id, platform="yt-dlp", path=link, added_by=self.name))
                 await session.commit()
-        logger.info(f"Failure, score = {score}, title = {title}, link = {link}")
+        else:
+            logger.info(f"Failure, score = {score}, title = {title}, link = {link}")
 
     def _short_category(self, category: Category) -> str:
         return {Category.Opening: "op", Category.Ending: "ed"}[category]
