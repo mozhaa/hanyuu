@@ -11,6 +11,9 @@ from .base import InvalidSource, SourceDownloadStrategy, TemporaryFailure
 
 logger = logging.getLogger(__name__)
 
+_yt_dlp_logger = logging.getLogger("yt_dlp")
+_yt_dlp_logger.setLevel(logging.INFO)
+
 
 class YtDlpStrategy(SourceDownloadStrategy):
     async def run(self, qitem_source: QItemSource) -> None:
@@ -20,7 +23,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
 
         try:
             params = {
-                "logger": logger,
+                "logger": _yt_dlp_logger,
                 "outtmpl": f"{download_dir}/{qitem_source.id}.%(ext)s",
                 "format": "bv*[height=720]+ba/b[height=720]/"
                 "bv*[height>720][height<=1080]+ba/b[height>720][height<=1080]/bv*+ba/b",
