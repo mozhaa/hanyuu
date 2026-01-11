@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from pathlib import Path
 
@@ -37,7 +38,7 @@ class YtDlpStrategy(SourceDownloadStrategy):
 
         try:
             with yt_dlp.YoutubeDL(params=params) as ydl:
-                yt_dlp_error_code = ydl.download([qitem_source.path])
+                yt_dlp_error_code = await asyncio.to_thread(ydl.download, [qitem_source.path])
         except DownloadError as e:
             self._handle_download_error(e)
         except Exception as e:
