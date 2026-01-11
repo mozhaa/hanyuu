@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import logging
+from functools import cache
 from pathlib import Path
 from typing import Optional
 
@@ -47,13 +48,17 @@ async def check(strategy_name: str) -> None:
         client = get_qbt_client()
         torrents = {t["hash"]: t for t in client.torrents_info(torrent_hashes=hashes)}
 
+        @cache
+        def get_torrent_files(infohash: str) -> qbt.TorrentFilesList:
+            return client.torrents_files(infohash)
+
         for source in sources:
             if source.dl_info not in torrents:
                 logger.warning(f"{source.path} not in QBT anymore")
                 continue
 
             # get torrent contents from qbt
-            files = client.torrents_files(source.dl_info)
+            files = get_torrent_files(source.dl_info)
 
             # find file we need
             it = (f for f in files if compare_path_with_and_without_root(f["name"], source.additional_path))  # type: ignore
