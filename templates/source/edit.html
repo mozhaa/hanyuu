@@ -17,7 +17,7 @@
         </section>
         
         <section>
-            <label for="path">Path</label>
+            <label for="path"><a href="{{ source.path if source.platform == 'yt-dlp' else '' }}" class="path-link" target="_blank" rel="noopener noreferrer">Path</a></label>
             <input type="text" name="path" value="{{ source.path }}">
         </section>
 
