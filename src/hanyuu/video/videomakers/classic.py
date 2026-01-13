@@ -6,14 +6,13 @@ from typing import Callable, Optional
 import aiohttp
 import ffmpeg
 
-from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import Category, QItemDifficulty, QItemSourceTiming
 from hanyuu.utils import default_headers
 
 from .base import VideoMakerBase
 
-countdowns_dir = Path(getenv("static_dir")) / "video" / "countdowns"
+countdowns_dir = Path("static") / "video" / "countdowns"
 
 
 def difficulty_func(value: int) -> str:
@@ -55,7 +54,7 @@ class VideoMaker(VideoMakerBase):
     def __init__(
         self,
         name: str,
-        countdowns_dir: str = countdowns_dir,  # directory with countdowns videos
+        countdowns_dir: str = str(countdowns_dir),  # directory with countdowns videos
         difficulty_func: Callable[[int], str] = difficulty_func,  # difficulty |-> countdown file name
         loudnorm: float = -18,
         acodec: str = "aac",
@@ -91,11 +90,11 @@ class VideoMaker(VideoMakerBase):
 
         countdown_fp = (Path(self.countdowns_dir) / self.difficulty_func(difficulty.value)).resolve()
 
-        font_fp = (Path(getenv("static_dir")) / "ttf" / "tccm.ttf").resolve()
+        font_fp = (Path("static") / "ttf" / "tccm.ttf").resolve()
 
         Path(output_fp).parent.mkdir(parents=True, exist_ok=True)
 
-        poster_box_fp = Path(getenv("static_dir")) / "png" / "poster_box.png"
+        poster_box_fp = Path("static") / "png" / "poster_box.png"
 
         poster_file = NamedTemporaryFile("w+b", delete_on_close=False)
         async with aiohttp.ClientSession(headers=default_headers) as session:

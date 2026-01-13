@@ -17,9 +17,6 @@ class Settings(BaseSettings):
     qbt_password: str
 
     resources_dir: str
-    templates_dir: str
-    static_dir: str
-    src_dir: str
 
     model_config = SettingsConfigDict(env_file=".env")
 

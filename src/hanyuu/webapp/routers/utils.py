@@ -6,11 +6,10 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 
-from hanyuu.config import getenv
 from hanyuu.database.main.models import Base
 from hanyuu.webapp.deps import AddedByDep, SessionDep
 
-templates = Jinja2Templates(directory=getenv("templates_dir"))
+templates = Jinja2Templates(directory="templates")
 
 
 def redirect_to(router: APIRouter, from_url: str, to_name: str) -> None:

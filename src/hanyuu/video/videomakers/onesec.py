@@ -2,13 +2,12 @@ from pathlib import Path
 
 import ffmpeg
 
-from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItemSourceTiming
 
 from .base import VideoMakerBase
 
-countdown_fp = Path(getenv("static_dir")) / "video" / "one_sec_guess_265.mp4"
+countdown_fp = Path("static") / "video" / "one_sec_guess_265.mp4"
 
 
 class OneSecVideoMaker(VideoMakerBase):
@@ -19,7 +18,7 @@ class OneSecVideoMaker(VideoMakerBase):
             source = await timing.awaitable_attrs.qitem_source
             qitem = await source.awaitable_attrs.qitem
 
-        font_fp = (Path(getenv("static_dir")) / "ttf" / "VOGUE.TTF").resolve()
+        font_fp = (Path("static") / "ttf" / "VOGUE.TTF").resolve()
         input_fp = Path(source.local_fp).resolve()
         output_fp = Path(output_fp).resolve()
         output_fp.parent.mkdir(parents=True, exist_ok=True)

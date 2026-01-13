@@ -6,7 +6,6 @@ from typing import Optional
 import bencodepy
 from rapidfuzz import fuzz
 
-from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import (
     Anime,
@@ -31,7 +30,7 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
         file_threshold: float = 0.8,
     ) -> None:
         super().__init__(name)
-        self.torrent_fp = torrent_fp or Path(getenv("static_dir")) / "anitousen.torrent"
+        self.torrent_fp = torrent_fp or Path("static") / "anitousen.torrent"
         self.folder_threshold = folder_threshold
         self.file_threshold = file_threshold
 
