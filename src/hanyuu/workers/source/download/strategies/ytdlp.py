@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from pathlib import Path
 
 import yt_dlp
 from yt_dlp.utils import DownloadError, UnsupportedError
@@ -19,7 +18,8 @@ _yt_dlp_logger.setLevel(logging.INFO)
 
 class YtDlpStrategy(SourceDownloadStrategy):
     async def run(self, qitem_source: QItemSource) -> None:
-        download_dir = Path(getenv("resources_dir")) / "videos" / "sources" / self.name
+        download_dir = getenv("resources_dir") / "videos" / "sources" / self.name
+        download_dir.parent.mkdir(parents=True, exist_ok=True)
         yt_dlp_error_code = None
 
         params = {

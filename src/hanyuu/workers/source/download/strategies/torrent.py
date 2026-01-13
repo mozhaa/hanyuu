@@ -45,9 +45,11 @@ class TorrentDownloadingStrategy(SourceDownloadStrategy):
             if torrent is None:
                 try:
                     # if torrent was not added before, add it
+                    path = getenv("resources_dir") / "videos" / "sources" / self.name
+                    path.mkdir(parents=True, exist_ok=True)
                     self.qbt_client.torrents_add(
                         urls=torrent_path.path,
-                        save_path=str((Path(getenv("resources_dir")) / "videos" / "sources" / self.name).resolve()),
+                        save_path=str(path),
                         tags=f"hanyuu_{self.name}",
                         category="hanyuu",
                         is_paused=True,

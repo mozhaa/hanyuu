@@ -86,5 +86,5 @@ if __name__ == "__main__":
     parser.add_argument("-t", type=float, default=15, help="interval between fetches of qbt torrents info")
     parser.add_argument("--strategy", type=str, default="strategy_torrent", help="name of torrent strategy")
     args = parser.parse_args()
-    worker_log_config(str(Path(getenv("resources_dir")) / "workers" / "torrents.log"))
+    worker_log_config(str(getenv("logs_dir") / "worker" / "torrent_checkout.log"))
     asyncio.run(main(args.t, args.strategy))

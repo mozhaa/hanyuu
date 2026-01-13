@@ -4,7 +4,6 @@ import logging
 import random
 from abc import ABC, abstractmethod
 from datetime import datetime
-from pathlib import Path
 from typing import Generator, List
 
 from sqlalchemy import select, true
@@ -30,9 +29,8 @@ t_strategies = ["manual"] + [s.name for s in _t_strategies]
 s_strategies = ["manual"] + [s.name for s in _s_strategies]
 style_names = [vm.name for vm in styles]
 
+root_dir = getenv("resources_dir") / "videos" / "quiz"
 logger = logging.getLogger(__name__)
-
-root_dir = Path(getenv("resources_dir")) / "videos" / "quiz"
 
 
 class RandomPicker(ABC):

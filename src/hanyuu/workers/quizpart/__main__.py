@@ -1,7 +1,6 @@
 import argparse
 import asyncio
 import logging
-from pathlib import Path
 
 from sqlalchemy import case, delete, label, literal_column, select, true
 
@@ -18,8 +17,7 @@ d_strategies = ["manual"] + [s.name for s in _d_strategies]
 t_strategies = ["manual"] + [s.name for s in _t_strategies]
 s_strategies = ["manual"] + [s.name for s in _s_strategies]
 
-root_dir = Path(getenv("resources_dir")) / "videos" / "quizparts"
-worker_dir = Path(getenv("resources_dir")) / "workers" / "quizpart"
+root_dir = getenv("resources_dir") / "videos" / "quizparts"
 logger = logging.getLogger(__name__)
 
 
@@ -30,6 +28,7 @@ async def run_videomaker(timing_id: int, difficulty_id: int, videomaker: VideoMa
         session.add(quiz_part)
         await session.flush()
         await session.refresh(quiz_part)
+        root_dir.mkdir(parents=True, exist_ok=True)
         output_fp = str(root_dir / f"{quiz_part.id}.mkv")
         quiz_part.local_fp = output_fp
         try:
@@ -155,7 +154,7 @@ async def main(args: argparse.Namespace) -> None:
 
 
 if __name__ == "__main__":
-    worker_log_config(str((worker_dir / ".log").resolve()))
+    worker_log_config(str(getenv("logs_dir") / "worker" / "quizpart.log"))
     parser = argparse.ArgumentParser()
     parser.add_argument("style", type=str, choices=[vm.name for vm in styles], help="style of videomaker to use")
     parser.add_argument("-w", "--wait", type=float, default=10, help="waiting time, if no jobs were found")

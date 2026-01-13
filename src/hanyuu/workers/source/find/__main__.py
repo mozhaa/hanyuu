@@ -3,7 +3,6 @@ import asyncio
 import logging
 import random
 import time
-from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.orm import aliased
@@ -16,7 +15,6 @@ from hanyuu.workers.utils import FiledList, delayed, worker_log_config
 from .strategies import SourceFindStrategy, strategies
 
 logger = logging.getLogger(__name__)
-worker_dir = Path(getenv("resources_dir")) / "workers" / "source" / "find"
 
 
 async def job(strategy: SourceFindStrategy, wait: float, max_no_fetch: float) -> None:
@@ -32,7 +30,8 @@ async def job(strategy: SourceFindStrategy, wait: float, max_no_fetch: float) ->
 
     starting_time = time.time()
 
-    processed_fp = worker_dir / f"processed_{strategy.name}.txt"
+    processed_fp = getenv("logs_dir") / "worker" / f"processed_{strategy.name}.txt"
+    processed_fp.parent.mkdir(parents=True, exist_ok=True)
     for _ in (True,):
         async with FiledList(str(processed_fp)) as processed_ids:
             # qitems without any sources by this or better strategies, and not processed by this strategy
@@ -62,7 +61,7 @@ async def main(max_no_fetch: float, wait: float, delay: float) -> None:
 
 
 if __name__ == "__main__":
-    worker_log_config(str((worker_dir / ".log").resolve()))
+    worker_log_config(str(getenv("logs_dir") / "worker" / "source_find.log"))
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--max-no-fetch", type=float, default=20, help="maximum time without db fetches")
     parser.add_argument("-w", "--wait", type=float, default=10, help="waiting time, if no jobs were found")

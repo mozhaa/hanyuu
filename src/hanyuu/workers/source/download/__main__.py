@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import logging
 import time
-from pathlib import Path
 
 from sqlalchemy import case, label, literal_column, select
 from sqlalchemy.orm import aliased
@@ -17,7 +16,6 @@ from .strategies import InvalidSource, SourceDownloadStrategy, TemporaryFailure
 from .strategies import strategies as downloading_strategies
 
 logger = logging.getLogger(__name__)
-worker_dir = Path(getenv("resources_dir")) / "workers" / "source" / "download"
 
 
 async def run_loop(platform: str, strategy: SourceDownloadStrategy, wait_duration: float, ban_duration: float) -> None:
@@ -108,7 +106,7 @@ async def main(wait: float, ban_duration: float, delay: float) -> None:
 
 
 if __name__ == "__main__":
-    worker_log_config(str((worker_dir / ".log").resolve()))
+    worker_log_config(str(getenv("logs_dir") / "worker" / "source_download.log"))
     parser = argparse.ArgumentParser()
     parser.add_argument("-w", "--wait", type=float, default=10, help="waiting time, if no jobs were found")
     parser.add_argument(

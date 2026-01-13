@@ -1,7 +1,6 @@
 import argparse
 import asyncio
 import logging
-from pathlib import Path
 
 from sqlalchemy import select
 
@@ -13,7 +12,6 @@ from hanyuu.workers.utils import restrict_callrate, worker_log_config
 from .strategies import strategies
 
 logger = logging.getLogger(__name__)
-worker_dir = Path(getenv("resources_dir")) / "workers" / "difficulty"
 
 
 async def run_job() -> None:
@@ -46,7 +44,7 @@ async def main(interval: float) -> None:
 
 
 if __name__ == "__main__":
-    worker_log_config(str((worker_dir / ".log").resolve()))
+    worker_log_config(str(getenv("logs_dir") / "worker" / "difficulty.log"))
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", type=float, default=0, help="interval in seconds between job starts")
     args = parser.parse_args()
