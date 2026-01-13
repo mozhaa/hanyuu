@@ -11,7 +11,7 @@ from hanyuu.video.videomakers import VideoMakerBase, styles
 from hanyuu.workers.difficulty.strategies import strategies as _d_strategies
 from hanyuu.workers.source.find.strategies import strategies as _s_strategies
 from hanyuu.workers.timing.strategies import strategies as _t_strategies
-from hanyuu.workers.utils import worker_log_config
+from hanyuu.workers.utils import try_make_path_relative, worker_log_config
 
 d_strategies = ["manual"] + [s.name for s in _d_strategies]
 t_strategies = ["manual"] + [s.name for s in _t_strategies]
@@ -30,7 +30,7 @@ async def run_videomaker(timing_id: int, difficulty_id: int, videomaker: VideoMa
         await session.refresh(quiz_part)
         root_dir.mkdir(parents=True, exist_ok=True)
         output_fp = str(root_dir / f"{quiz_part.id}.mkv")
-        quiz_part.local_fp = output_fp
+        quiz_part.local_fp = str(try_make_path_relative(output_fp, getenv("resources_dir")))
         try:
             await videomaker.create_video(timing_id, difficulty_id, output_fp)
             logger.info(f"Created quiz part on {output_fp}")

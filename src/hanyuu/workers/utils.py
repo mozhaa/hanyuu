@@ -127,16 +127,23 @@ def worker_log_config(fp: str) -> None:
     logging.config.dictConfig(CONFIG)
 
 
-def try_make_path_relative(path: Path | str) -> Path:
+def try_make_path_relative(path: Path | str, root_path: Path) -> Path:
     if isinstance(path, str):
         path = Path(path)
 
-    path = path.resolve()
+    path = path.expanduser().resolve()
 
     try:
-        return path.relative_to(Path.cwd())
+        return path.relative_to(root_path)
     except ValueError:
         return path
+
+
+def make_absolute(path: Path, root_path: Path) -> Path:
+    if path.is_absolute():
+        return path
+    else:
+        return root_path / path
 
 
 async def delayed[T](delay: float, wrapped: Callable[..., T], *args, **kwargs) -> T:

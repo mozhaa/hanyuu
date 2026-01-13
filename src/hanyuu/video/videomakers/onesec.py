@@ -2,8 +2,10 @@ from pathlib import Path
 
 import ffmpeg
 
+from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItemSourceTiming
+from hanyuu.workers.utils import make_absolute
 
 from .base import VideoMakerBase
 
@@ -19,7 +21,7 @@ class OneSecVideoMaker(VideoMakerBase):
             qitem = await source.awaitable_attrs.qitem
 
         font_fp = (Path("static") / "ttf" / "VOGUE.TTF").resolve()
-        input_fp = Path(source.local_fp).resolve()
+        input_fp = make_absolute(Path(source.local_fp), getenv("resources_dir"))
         output_fp = Path(output_fp).resolve()
         output_fp.parent.mkdir(parents=True, exist_ok=True)
 

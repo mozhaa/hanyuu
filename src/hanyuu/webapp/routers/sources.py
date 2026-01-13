@@ -1,11 +1,14 @@
+from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import APIRouter, Request
 from fastapi.responses import FileResponse, HTMLResponse, Response
 from pydantic import BaseModel
 
+from hanyuu.config import getenv
 from hanyuu.database.main.models import QItem, QItemSource
 from hanyuu.webapp.deps import AddedByDep, SessionDep
+from hanyuu.workers.utils import make_absolute
 
 from .utils import no_such, templates, update_model
 
@@ -52,6 +55,8 @@ async def delete_source(session: SessionDep, id_: int) -> Any:
 @router.get("/{id_}/downloaded")
 async def get_source_video(session: SessionDep, id_: int) -> Any:
     source = await session.get(QItemSource, id_)
+    if source is None:
+        return Response(content=f"QItemSource with id={id_} does not exist", status_code=404)
     if source.local_fp is None:
         return Response(content=f"QItemSource with id={id_} has not been downloaded yet", status_code=404)
-    return FileResponse(source.local_fp)
+    return FileResponse(make_absolute(Path(source.local_fp), getenv("resources_dir")))

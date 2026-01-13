@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from pathlib import Path
 
 import yt_dlp
 from yt_dlp.utils import DownloadError, UnsupportedError
@@ -7,6 +8,7 @@ from yt_dlp.utils import DownloadError, UnsupportedError
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItemSource
+from hanyuu.workers.utils import try_make_path_relative
 
 from .base import InvalidSource, SourceDownloadStrategy, TemporaryFailure
 
@@ -38,7 +40,9 @@ class YtDlpStrategy(SourceDownloadStrategy):
 
         try:
             with yt_dlp.YoutubeDL(params=params) as ydl:
-                yt_dlp_error_code = await asyncio.to_thread(ydl.download, [qitem_source.path])
+                info = await asyncio.to_thread(ydl.extract_info, qitem_source.path, download=True)
+                downloaded_file_path = ydl.prepare_filename(info)
+                yt_dlp_error_code = 0 if info else 1
         except DownloadError as e:
             self._handle_download_error(e)
         except Exception as e:
@@ -46,16 +50,15 @@ class YtDlpStrategy(SourceDownloadStrategy):
             raise TemporaryFailure(f"Unexpected error during yt-dlp execution: {e}") from e
 
         if yt_dlp_error_code == 0:
-            local_fp = next(download_dir.glob(f"{qitem_source.id}.*"), None)
-            if local_fp is not None:
-                async with get_engine().async_session() as session:
-                    session.add(qitem_source)
-                    await session.refresh(qitem_source)
-                    qitem_source.local_fp = str(local_fp)
-                    await session.commit()
-            else:
-                logger.warning(f"yt-dlp returned 0, but video was not found ({qitem_source.id=})")
-                raise TemporaryFailure(f"yt-dlp success but file missing for {qitem_source.id}")
+            path = Path(downloaded_file_path)
+            if not path.exists() or not path.is_file():
+                logger.warning(f"yt-dlp returned 0 error code but no file was found ({path=})")
+                raise TemporaryFailure(f"yt-dlp returned 0 error code but no file was found ({path=})")
+            async with get_engine().async_session() as session:
+                session.add(qitem_source)
+                await session.refresh(qitem_source)
+                qitem_source.local_fp = str(try_make_path_relative(downloaded_file_path, getenv("resources_dir")))
+                await session.commit()
         else:
             raise TemporaryFailure(f"yt-dlp terminated with non-zero error_code={yt_dlp_error_code}")
 

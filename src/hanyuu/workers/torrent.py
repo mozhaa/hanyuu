@@ -67,7 +67,8 @@ async def check(strategy_name: str) -> None:
                 logger.warning(f"{source.additional_path} was not found in torrent contents")
             elif file["progress"] == 1:
                 local_fp = try_make_path_relative(
-                    Path(torrents[source.dl_info]["save_path"]) / Path(file["name"])  # type: ignore
+                    Path(torrents[source.dl_info]["save_path"]) / Path(file["name"]),  # type: ignore
+                    getenv("resources_dir"),
                 )
                 source.local_fp = str(local_fp)
                 source.dl_info = None

@@ -6,9 +6,11 @@ from typing import Callable, Optional
 import aiohttp
 import ffmpeg
 
+from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import Category, QItemDifficulty, QItemSourceTiming
 from hanyuu.utils import default_headers
+from hanyuu.workers.utils import make_absolute
 
 from .base import VideoMakerBase
 
@@ -88,6 +90,8 @@ class VideoMaker(VideoMakerBase):
         }[qitem.category]
         text = f"{anime.shiki_title_ro} {category_short} {qitem.number}"
 
+        input_fp = str(make_absolute(Path(source.local_fp), getenv("resources_dir")))
+
         countdown_fp = (Path(self.countdowns_dir) / self.difficulty_func(difficulty.value)).resolve()
 
         font_fp = (Path("static") / "ttf" / "tccm.ttf").resolve()
@@ -106,8 +110,8 @@ class VideoMaker(VideoMakerBase):
         vp = self.vpos
 
         countdown = ffmpeg.input(str(countdown_fp.resolve()))
-        reveal = ffmpeg.input(source.local_fp, ss=timing.reveal_start, t=vt.rD)
-        guess = ffmpeg.input(source.local_fp, ss=timing.guess_start, t=vt.gD)
+        reveal = ffmpeg.input(input_fp, ss=timing.reveal_start, t=vt.rD)
+        guess = ffmpeg.input(input_fp, ss=timing.guess_start, t=vt.gD)
         poster = ffmpeg.input(poster_file.name, loop=1, t=vt.rD)
         poster_box = ffmpeg.input(poster_box_fp.resolve(), loop=1, t=vt.rD)
 

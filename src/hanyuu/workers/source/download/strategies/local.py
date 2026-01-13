@@ -2,6 +2,7 @@ from pathlib import Path
 
 import ffmpeg
 
+from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import QItemSource
 from hanyuu.workers.utils import try_make_path_relative
@@ -21,7 +22,7 @@ class LocalFileStrategy(SourceDownloadStrategy):
         engine = get_engine()
         async with engine.async_session() as session:
             session.add(qitem_source)
-            qitem_source.local_fp = str(try_make_path_relative(qitem_source.path))
+            qitem_source.local_fp = str(try_make_path_relative(qitem_source.path, getenv("resources_dir")))
             await session.commit()
 
 
