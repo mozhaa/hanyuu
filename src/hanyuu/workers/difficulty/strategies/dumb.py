@@ -1,9 +1,12 @@
+import logging
 import math
 
 from hanyuu.database.main.connection import get_engine
 from hanyuu.database.main.models import Anime, QItem, QItemDifficulty
 
 from .base import DifficultyStrategy
+
+logger = logging.getLogger(__name__)
 
 
 class Dumb(DifficultyStrategy):
@@ -12,7 +15,8 @@ class Dumb(DifficultyStrategy):
         async with engine.async_session() as session:
             qitem = await session.get(QItem, qitem_id)
             if qitem is None:
-                raise RuntimeError(f"no such qitem with {qitem_id=}")
+                logger.warning(f"difficulty dumb strategy recieved non-existent {qitem_id=}")
+                return
             anime: Anime = await qitem.awaitable_attrs.anime
 
             watch_count = anime.shiki_completed + anime.shiki_watching

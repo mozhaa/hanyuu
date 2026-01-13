@@ -50,7 +50,11 @@ class AniTousenTorrentStrategy(SourceFindStrategy):
         return self._files
 
     async def run(self, qitem_id: int) -> None:
-        source = await self._find_source(qitem_id)
+        try:
+            source = await self._find_source(qitem_id)
+        except RuntimeError as e:
+            logger.warning(f"anitousen find strategy failed with runtime error: {e}")
+            return
         if source is None:
             logger.info(f"Strategy failure! qitem_id={qitem_id}")
             return

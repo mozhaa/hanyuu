@@ -33,7 +33,11 @@ class YoutubeFindStrategy(SourceFindStrategy):
         self.negative_helpers = negative_helpers if negative_helpers is not None else ["Cover", "AMV", "Full", "Lyrics"]
 
     async def run(self, qitem_id: int) -> None:
-        qitem_source = await self.find_source(qitem_id)
+        try:
+            qitem_source = await self.find_source(qitem_id)
+        except RuntimeError as e:
+            logger.warning(f"youtube find strategy failed with runtime error: {e}")
+            return
         if qitem_source is not None:
             engine = get_engine(True)
             async with engine.async_session() as session:
