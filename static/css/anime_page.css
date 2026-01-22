@@ -29,6 +29,28 @@
             font-size: 1.2em;
         }
 
+        & .approval-status {
+            margin-top: 1rem;
+        }
+
+        & .badge {
+            display: inline-block;
+            padding: 0.3em 0.8em;
+            border-radius: 50vh;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        & .badge-approved {
+            background-color: var(--color-pri-5);
+            color: var(--color-white);
+        }
+
+        & .badge-not-approved {
+            background-color: var(--color-sec-5);
+            color: var(--color-white);
+        }
+
         & .alias {
             font-weight: 400;
             font-size: 1.5rem;

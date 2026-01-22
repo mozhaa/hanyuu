@@ -91,14 +91,30 @@ function update_alias(el) {
             "content-type": "application/json",
         },
     }).then((response) => {
-        if (response.ok) { 
-            console.log("Successfully updated"); 
+        if (response.ok) {
+            console.log("Successfully updated");
             $(el).closest("form").removeClass("unsaved");
         }
         else
             response.text().then((text) => {
                 alert(text);
             });
+    });
+}
+
+function approve_anime() {
+    let anime_id = $("head").data("anime-id");
+    fetch(`/animes/${anime_id}/approve`, {
+        method: "PUT",
+    }).then((response) => {
+        if (response.ok) {
+            $(".badge-not-approved").removeClass("badge-not-approved").addClass("badge-approved").text("Approved");
+            $("button[onclick='approve_anime()']").remove();
+        } else {
+            response.text().then((text) => {
+                alert(text);
+            });
+        }
     });
 }
 

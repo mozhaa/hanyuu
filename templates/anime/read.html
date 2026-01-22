@@ -23,6 +23,13 @@
             <div class="left-panel">
                 <h2 class="main-title">{{ anime.shiki_title_ro }}</h2>
                 <h3 class="secondary-title">{{ anime.shiki_title_ru }}</h3>
+                <div class="approval-status">
+                    {% if anime.approved %}
+                        <span class="badge badge-approved">Approved</span>
+                    {% else %}
+                        <span class="badge badge-not-approved">Not Approved</span>
+                    {% endif %}
+                </div>
                 <form class="alias">
                     <span>Alias</span>
                     <input type="text" name="alias" placeholder="..." value="{{ anime.alias or '' }}">
@@ -31,6 +38,9 @@
                 </form>
                 <div class="buttons">
                     <a href="{{ anime.shiki_url }}" class="button button-pri-solid">On Shikimori</a>
+                    {% if not anime.approved %}
+                        <button type="button" class="button button-pri-solid" onclick="approve_anime()">Approve</button>
+                    {% endif %}
                     <button type="button" class="button-sec-solid" onclick="delete_anime()">Delete Anime</button>
                 </div>
             </div>
