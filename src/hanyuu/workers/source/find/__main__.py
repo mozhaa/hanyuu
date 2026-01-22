@@ -9,7 +9,7 @@ from sqlalchemy.orm import aliased
 
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
-from hanyuu.database.main.models import QItem, QItemSource
+from hanyuu.database.main.models import Anime, QItem, QItemSource
 from hanyuu.workers.utils import FiledList, delayed, worker_log_config
 
 from .strategies import SourceFindStrategy, strategies
@@ -23,9 +23,15 @@ async def job(strategy: SourceFindStrategy, wait: float, max_no_fetch: float) ->
         # soures, added by this strategy
         sources = aliased(QItemSource, select(QItemSource).where(QItemSource.added_by == strategy.name).subquery())
 
-        # qitems without any sources by this strategy
+        # qitems without any sources by this strategy and only from approved anime
         ids_without = (
-            await session.scalars(select(QItem.id).outerjoin(sources, QItem.sources).where(sources.id.is_(None)))
+            await session.scalars(
+                select(QItem.id)
+                .join(QItem.anime)
+                .outerjoin(sources, QItem.sources)
+                .where(sources.id.is_(None))
+                .where(Anime.approved.is_(True))
+            )
         ).all()
 
     starting_time = time.time()

@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from hanyuu.config import getenv
 from hanyuu.database.main.connection import get_engine
-from hanyuu.database.main.models import QItem, QItemDifficulty
+from hanyuu.database.main.models import Anime, QItem, QItemDifficulty
 from hanyuu.workers.utils import restrict_callrate, worker_log_config
 
 from .strategies import strategies
@@ -22,12 +22,14 @@ async def run_job() -> None:
     engine = get_engine()
     for strategy in strategies:
         async with engine.async_session() as session:
-            # qitems without difficulty by this strategy
+            # qitems without difficulty by this strategy and only from approved anime
             qitem_ids = (
                 await session.scalars(
                     select(QItem.id)
+                    .join(QItem.anime)
                     .outerjoin(QItem.difficulties.and_(QItemDifficulty.added_by == strategy.name))
                     .where(QItemDifficulty.id.is_(None))
+                    .where(Anime.approved.is_(True))
                 )
             ).all()
 
