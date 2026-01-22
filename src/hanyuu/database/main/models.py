@@ -68,6 +68,7 @@ class Anime(Base):
     shiki_videos: Mapped[List[List[str]]]
     shiki_synonyms: Mapped[List[str]]
     shiki_genres: Mapped[List[str]]
+    approved: Mapped[bool] = mapped_column(default=False)
 
     qitems: Mapped[List["QItem"]] = relationship(back_populates="anime", cascade="all, delete")
 
