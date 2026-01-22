@@ -163,6 +163,15 @@ async def delete_anime(session: SessionDep, mal_id: int) -> Any:
     await session.commit()
 
 
+@router.put("/{mal_id}/approve")
+async def approve_anime(session: SessionDep, mal_id: int) -> Any:
+    anime = await session.get(Anime, mal_id)
+    if anime is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Anime with mal_id={mal_id} not found")
+    anime.approved = True
+    await session.commit()
+
+
 class AnimeAliasScheme(BaseModel):
     id: int
     alias: str
